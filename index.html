@@ -272,5 +272,102 @@
 <script src="js/AppController.js"></script>
 <script src="js/AudioController.js"></script>
 <script src="js/AIEngine.js"></script>
+
+<script>
+(function () {
+  "use strict";
+
+  function clampNumber(value, minimum, maximum, fallback) {
+    var number = Number(value);
+    if (!Number.isFinite(number)) {
+      number = fallback;
+    }
+    return Math.min(maximum, Math.max(minimum, number));
+  }
+
+  function bindBidirectionalNumberAndRange(numberId, rangeId) {
+    var numberInput = document.getElementById(numberId);
+    var rangeInput = document.getElementById(rangeId);
+
+    if (!numberInput || !rangeInput) {
+      return;
+    }
+
+    var minimum = Number(rangeInput.min);
+    var maximum = Number(rangeInput.max);
+    var fallback = Number(rangeInput.value);
+
+    function updateFromNumber() {
+      var value = clampNumber(numberInput.value, minimum, maximum, fallback);
+      numberInput.value = String(value);
+      rangeInput.value = String(value);
+    }
+
+    function updateFromRange() {
+      numberInput.value = rangeInput.value;
+    }
+
+    numberInput.addEventListener("input", updateFromNumber);
+    numberInput.addEventListener("change", updateFromNumber);
+    rangeInput.addEventListener("input", updateFromRange);
+    rangeInput.addEventListener("change", updateFromRange);
+
+    updateFromNumber();
+  }
+
+  function bindVolumeLabels() {
+    var sliders = document.querySelectorAll('input[type="range"][id^="volume"]');
+
+    sliders.forEach(function (slider) {
+      var valueLabel = document.getElementById(slider.id + "Value");
+      if (!valueLabel) {
+        return;
+      }
+
+      function updateLabel() {
+        valueLabel.textContent = slider.value + "%";
+      }
+
+      slider.addEventListener("input", updateLabel);
+      slider.addEventListener("change", updateLabel);
+      updateLabel();
+    });
+  }
+
+  function renderInitialSongStructure() {
+    var container = document.getElementById("songBlocks");
+    if (!container || container.children.length > 0) {
+      return;
+    }
+
+    if (typeof window.renderStructure === "function") {
+      window.renderStructure();
+      return;
+    }
+
+    if (typeof window.renderSongStructure === "function") {
+      window.renderSongStructure();
+      return;
+    }
+
+    if (typeof window.resetStructure === "function") {
+      window.resetStructure();
+    }
+  }
+
+  function initializeFrontendBindings() {
+    bindBidirectionalNumberAndRange("bpmInput", "bpmSlider");
+    bindVolumeLabels();
+    renderInitialSongStructure();
+  }
+
+  if (document.readyState === "loading") {
+    document.addEventListener("DOMContentLoaded", initializeFrontendBindings, { once: true });
+  } else {
+    initializeFrontendBindings();
+  }
+})();
+</script>
+
 </body>
 </html>
