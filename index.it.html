@@ -1,0 +1,276 @@
+<!DOCTYPE html>
+
+<html lang="it">
+<head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1" name="viewport"/>
+<title>ClickBand Junior 3.0 — Produzione</title>
+<link href="css/style.css" rel="stylesheet"/>
+<script src="js/vendor/Tone.js"></script>
+<script src="js/vendor/Midi.js"></script>
+<script src="js/vendor/tonal.min.js"></script>
+<script src="js/vendor/spessasynth.js"></script>
+<script src="js/vendor/lame.js"></script>
+</head>
+<body>
+<header>
+<h1>🎵 ClickBand Junior 3.0</h1>
+<div class="subtitle">by Fabio Albanese 2026</div>
+<div class="subtitle"><strong>Lingua:</strong> <a href="index.html">English</a> · <a href="index.it.html">Italiano</a></div>
+<div class="subtitle">Generatore MIDI e audio utilizzabile interamente nel browser, con player integrato, esportazione MIDI/MP3 e visualizzazione in tempo reale.</div>
+<div class="subtitle">IMPORTANTE: questo progetto è ancora in fase di sviluppo</div>
+</header>
+<div class="wrap">
+<div class="panel">
+<div class="topbar">
+<div class="control">
+<label>🎭 Stile musicale</label>
+<select id="styleSelect">
+<option value="pop">🎵 Pop</option>
+<option value="rock">🎸 Rock leggero</option>
+<option value="disco">✨ Disco dance</option>
+</select>
+</div>
+<div class="control">
+<label>🎼 Tonica</label>
+<select id="tonicSelect">
+<option>C3</option><option>D3</option><option>Eb3</option><option>E3</option><option>F3</option><option>F#3</option><option>G3</option><option>Ab3</option><option>A3</option><option>Bb3</option><option>B3</option>
+<option selected="">C4</option><option>D4</option><option>Eb4</option><option>E4</option><option>F4</option><option>F#4</option><option>G4</option><option>Ab4</option><option>A4</option>
+</select>
+</div>
+<div class="control">
+<label>🎹 Modo</label>
+<select id="scaleModeSelect">
+<option value="major">Maggiore</option>
+<option value="minor">Minore</option>
+</select>
+</div>
+<div class="control">
+<label>⏱️ BPM</label>
+<input id="bpmInput" max="240" min="40" type="number" value="120"/>
+<input id="bpmSlider" max="240" min="40" style="width:100%;margin-top:6px;accent-color:var(--accent2)" type="range" value="120"/>
+</div>
+<div class="control">
+<label>🎼 Apertura del brano</label>
+<label style="display:flex;align-items:center;gap:8px;font-weight:400;cursor:pointer;">
+<input checked="" id="styleBasedIntro" type="checkbox"/>
+          Automatic by style
+        </label>
+<div class="mini">Disattivato: tutti gli strumenti entrano immediatamente.</div>
+</div>
+<div class="control">
+<label style="display:flex;align-items:center;gap:8px;cursor:pointer;">
+<input checked="" id="useTonalProgressions" type="checkbox"/>
+          Progressioni con Tonal.js
+        </label>
+</div>
+</div>
+<div class="builderBox">
+<div class="builderTitle">
+<div>
+<b>🧱 Costruisci il brano</b>
+<div class="mini">Fai clic per aggiungere, trascina per riordinare e usa ✕ per rimuovere.</div>
+</div>
+<div class="builderActions">
+<button class="tinyBtn" onclick="resetStructure()">↺ Struttura predefinita</button>
+<button class="tinyBtn danger" onclick="clearStructure()">🗑️ Svuota tutto</button>
+</div>
+</div>
+<div class="brickPalette">
+<button class="brick intro" onclick="addSection('intro')">Intro</button>
+<button class="brick verse" onclick="addSection('verse')">Strofa</button>
+<button class="brick chorus" onclick="addSection('chorus')">Ritornello</button>
+<button class="brick bridge" onclick="addSection('bridge')">Bridge</button>
+<button class="brick solo" onclick="addSection('solo')">🎸 Assolo</button>
+<button class="brick outro" onclick="addSection('outro')">Outro</button>
+</div>
+<div class="songBlocks" id="songBlocks"></div>
+</div>
+</div>
+<div class="panel">
+<div class="sectionTitle">
+<h2>🎛️ La tua band</h2>
+<div class="help">Attiva o disattiva ogni musicista e scegli uno strumento.</div>
+</div>
+<div class="bandgrid">
+<div class="voice locked">
+<div class="title">🎤 Melodia principale</div>
+<div class="switchrow"><label>Sempre attiva</label><input checked="" disabled="" id="trackMelody" type="checkbox"/></div>
+<div class="switchrow"><label>🌊 Sustain dinamico</label><input id="melodyDynamicSustain" type="checkbox"/></div>
+<select class="instrument" id="instrumentMelody"></select>
+<div class="playerRow" style="margin:8px 0"><label>Volume <b id="volumeMelodyValue">125%</b></label><input data-channel="0" id="volumeMelody" max="200" min="0" step="5" style="width:100%" type="range" value="125"/></div>
+<small>La linea melodica principale del brano.</small>
+</div>
+<div class="voice">
+<div class="title">🎹 Arpeggio</div>
+<div class="switchrow"><label>Attiva</label><input checked="" id="trackArpeggio" type="checkbox"/></div>
+<select class="instrument" id="instrumentArpeggio"></select>
+<div class="playerRow" style="margin:8px 0"><label>Volume <b id="volumeArpeggioValue">85%</b></label><input data-channel="1" id="volumeArpeggio" max="200" min="0" step="5" style="width:100%" type="range" value="85"/></div>
+<small>Riempie gli accordi con note spezzate.</small>
+</div>
+<div class="voice">
+<div class="title">🎸 Chitarra ritmica</div>
+<div class="switchrow"><label>Attiva</label><input checked="" id="trackGuitar" type="checkbox"/></div>
+<select class="instrument" id="instrumentGuitar"></select>
+<div class="playerRow" style="margin:8px 0"><label>Volume <b id="volumeGuitarValue">80%</b></label><input data-channel="3" id="volumeGuitar" max="200" min="0" step="5" style="width:100%" type="range" value="80"/></div>
+<small>Accompagnamento ritmico ad accordi.</small>
+</div>
+<div class="voice">
+<div class="title">🎸 Basso</div>
+<div class="switchrow"><label>Attiva</label><input checked="" id="trackBass" type="checkbox"/></div>
+<select class="instrument" id="instrumentBass"></select>
+<div class="playerRow" style="margin:8px 0"><label>Volume <b id="volumeBassValue">105%</b></label><input data-channel="2" id="volumeBass" max="200" min="0" step="5" style="width:100%" type="range" value="105"/></div>
+<small>Fondamentale e quinta tengono insieme la band.</small>
+</div>
+<div class="voice accessory-voice">
+<div class="title">✨ Note cromatiche</div>
+<div class="switchrow"><label>Attiva</label><input id="trackChromatic" type="checkbox"/></div>
+<select class="instrument" id="instrumentChromatic"></select>
+<div class="playerRow" style="margin:8px 0"><label>Volume <b id="volumeChromaticValue">75%</b></label><input data-channel="4" id="volumeChromatic" max="200" min="0" step="5" style="width:100%" type="range" value="75"/></div>
+<small>Piccoli passaggi controllati di semitono.</small>
+</div>
+<div class="voice">
+<div class="title">🥁 Batteria</div>
+<div class="switchrow"><label>Attiva</label><input checked="" id="trackDrums" type="checkbox"/></div>
+<select disabled=""><option>Kit batteria MIDI</option></select>
+<div class="playerRow" style="margin:8px 0"><label>Volume <b id="volumeDrumsValue">95%</b></label><input data-channel="9" id="volumeDrums" max="200" min="0" step="5" style="width:100%" type="range" value="95"/></div>
+<small>Cassa, rullante, charleston e brevi fill.</small>
+</div>
+<div class="voice accessory-voice">
+<div class="title">🌫️ Pad / archi sostenuti</div>
+<div class="switchrow"><label>Attiva</label><input id="trackPad" type="checkbox"/></div>
+<select class="instrument" id="instrumentPad"></select>
+<div class="playerRow" style="margin:8px 0"><label>Volume <b id="volumePadValue">65%</b></label><input data-channel="5" id="volumePad" max="200" min="0" step="5" style="width:100%" type="range" value="65"/></div>
+<small>Accordi lunghi che riempiono lo sfondo.</small>
+</div>
+<div class="voice accessory-voice">
+<div class="title">🎶 Contromelodia</div>
+<div class="switchrow"><label>Attiva</label><input id="trackCounter" type="checkbox"/></div>
+<select class="instrument" id="instrumentCounter"></select>
+<div class="playerRow" style="margin:8px 0"><label>Volume <b id="volumeCounterValue">75%</b></label><input data-channel="6" id="volumeCounter" max="200" min="0" step="5" style="width:100%" type="range" value="75"/></div>
+<small>Risponde alla melodia quando c’è spazio.</small>
+</div>
+<div class="voice">
+<div class="title">🔁 Ostinato</div>
+<div class="switchrow"><label>Attiva</label><input checked="" id="trackOstinato" type="checkbox"/></div>
+<select class="instrument" id="instrumentOstinato"></select>
+<div class="playerRow" style="margin:8px 0"><label>Volume <b id="volumeOstinatoValue">65%</b></label><input data-channel="7" id="volumeOstinato" max="200" min="0" step="5" style="width:100%" type="range" value="65"/></div>
+<small>A short repeating figure, especially in choruses.</small>
+</div>
+<div class="voice">
+<div class="title">🔔 Effetti leggeri</div>
+<div class="switchrow"><label>Attiva</label><input id="trackFX" type="checkbox"/></div>
+<select class="instrument" id="instrumentFX"></select>
+<div class="playerRow" style="margin:8px 0"><label>Volume <b id="volumeFXValue">75%</b></label><input data-channel="8" id="volumeFX" max="200" min="0" step="5" style="width:100%" type="range" value="75"/></div>
+<small>Tocchi ogni tanto: campanelli, glockenspiel, music box.</small>
+</div>
+<div class="voice accessory-voice">
+<div class="title">👥 Coro / voce</div>
+<div class="switchrow"><label>Attiva</label><input id="trackChoir" type="checkbox"/></div>
+<select class="instrument" id="instrumentChoir"></select>
+<div class="playerRow" style="margin:8px 0"><label>Volume <b id="volumeChoirValue">85%</b></label><input data-channel="10" id="volumeChoir" max="200" min="0" step="5" style="width:100%" type="range" value="85"/></div>
+<small>Raddoppia la melodia principale nelle sezioni abilitate.</small>
+</div>
+<div class="voice accessory-voice">
+<div class="title">🎺 Ottoni</div>
+<div class="switchrow"><label>Attiva</label><input id="trackBrass" type="checkbox"/></div>
+<select class="instrument" id="instrumentBrass"></select>
+<div class="playerRow" style="margin:8px 0"><label>Volume <b id="volumeBrassValue">85%</b></label><input data-channel="11" id="volumeBrass" max="200" min="0" step="5" style="width:100%" type="range" value="85"/></div>
+<small>Colpi brevi sugli accenti del ritornello.</small>
+</div>
+<div class="voice accessory-voice">
+<div class="title">🎻 Archi ritmici</div>
+<div class="switchrow"><label>Attiva</label><input id="trackStrings" type="checkbox"/></div>
+<select class="instrument" id="instrumentStrings"></select>
+<div class="playerRow" style="margin:8px 0"><label>Volume <b id="volumeStringsValue">65%</b></label><input data-channel="12" id="volumeStrings" max="200" min="0" step="5" style="width:100%" type="range" value="65"/></div>
+<small>Accordi brevi in levare che aggiungono energia.</small>
+</div>
+</div>
+</div>
+<div class="panel actionPanel">
+<div class="sectionTitle">
+<h2>🚀 Azioni</h2>
+<div class="help">Scegli stile, BPM, struttura e strumenti, poi genera, ascolta ed esporta.</div>
+</div>
+<div class="switchrow aiImprovementOption" style="margin:0 0 14px 0; justify-content:flex-start; gap:10px">
+<label for="enableAIImprovement"><b>🧠 Miglioramento AI</b></label>
+<input checked="" id="enableAIImprovement" type="checkbox"/>
+<small>Se attivo, il MIDI assemblato viene migliorato prima della riproduzione, del download o della conversione in MP3.</small>
+</div>
+<div class="flowActions">
+<div class="step">
+<div class="stepNum">1</div>
+<button id="generateSongButton" onclick="generateSong()">🎲 Genera brano</button>
+</div>
+<div class="step">
+<div class="stepNum">2</div>
+<button disabled="" id="regenerateMidiButton" onclick="regenerateMidi()">🔄 Rigenera MIDI</button>
+</div>
+<div class="step disabled" id="downloadStep">
+<div class="stepNum">3</div>
+<button onclick="downloadMidi()">💾 Scarica MIDI</button>
+</div>
+<div class="step" id="generateMp3Step">
+<div class="stepNum">4</div>
+<button disabled="" id="cbGenerateMp3Button" onclick="cbStartMp3Render()">🎵 Genera MP3</button>
+</div>
+</div>
+<div aria-live="polite" class="generating-text" id="statusText" role="status">Pronto.</div>
+</div>
+<div class="panel midiPlayerPanel">
+<div class="sectionTitle">
+<h2>🎧 Player</h2>
+</div>
+<div class="playerGrid">
+<div>
+<div class="playerControls">
+<button class="secondary" disabled="" id="cbBtnPlay" onclick="bjPlayerPlay()">▶ Riproduci</button>
+<button disabled="" id="cbBtnPause" onclick="bjPlayerPause()">⏸ Pausa</button>
+<button class="danger" disabled="" id="cbBtnStop" onclick="bjPlayerStop()">■ Stop</button>
+</div>
+<div class="playerControls">
+<button class="secondary" disabled="" id="cbMp3Button" onclick="cbDownloadMp3()">🎵 Scarica MP3</button>
+</div>
+<div class="playerRow"><span>Posizione</span><span><span id="bjNow">0:00</span> / <span id="bjDur">0:00</span></span></div>
+<div class="playerProgress" id="bjProgress"><div class="playerBar" id="bjBar"></div></div>
+<div class="playerRow"><label>Tempo <b id="bjTempoVal">100%</b></label><input id="bjTempo" max="200" min="50" type="range" value="100"/></div>
+<div class="playerRow"><label>Volume <b id="bjVolVal">80%</b></label><input id="bjVolume" max="100" min="0" type="range" value="80"/></div>
+<div class="playerRow"><label>Trasposizione <b id="bjTransposeVal">0</b></label><input id="bjTranspose" max="24" min="-24" type="range" value="0"/></div>
+<div class="playerStats">
+<div class="playerStat"><b id="bjTracksN">0</b><span>tracce</span></div>
+<div class="playerStat"><b id="bjNotesN">0</b><span>note</span></div>
+<div class="playerStat"><b id="bjBpmN">0</b><span>BPM</span></div>
+<div class="playerStat"><b id="bjSigN">—</b><span>indicazione di tempo</span></div>
+</div>
+<div class="playerStatus" id="bjPlayerStatus">Genera un brano per preparare il player MIDI.</div>
+</div>
+<div>
+<canvas height="520" id="bjRoll" width="1500"></canvas>
+<div class="bjTracks" id="bjTrackList"><span class="help">Le tracce appariranno dopo la generazione.</span></div>
+</div>
+</div>
+</div>
+<div class="panel songDataPanel" id="songDataPanel">
+<div class="sectionTitle">
+<h2>📜 Dati del brano</h2>
+<button class="toggleDataBtn" id="toggleSongDataPanel" onclick="toggleSongData()">📂 Mostra dati</button>
+</div>
+<div class="help">Pannello tecnico: accordi, ritmo e melodia numerica.</div>
+<div class="songDataBody" id="songDataBody">
+<textarea id="output" readonly=""></textarea>
+</div>
+</div>
+</div>
+<script src="js/RhythmPatternLibrary.js"></script>
+<script src="js/Locale.js"></script>
+<script src="js/MelodicRhythmGenerator.js"></script>
+<script src="js/SongGenerator.js"></script>
+<script src="js/ArrangementGenerator.js"></script>
+<script src="js/MidiGenerator.js"></script>
+<script src="js/AIImprover.js"></script>
+<script src="js/UIRuntime.js"></script>
+<script src="js/AppController.js"></script>
+<script src="js/AudioController.js"></script>
+<script src="js/AIEngine.js"></script>
+</body>
+</html>
