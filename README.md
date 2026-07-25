@@ -5,6 +5,12 @@ ClickBand Junior is a browser-only generative music application written in class
 **Author:** Fabio Albanese  
 **License:** CC BY-NC 4.0 — attribution required, non-commercial use only.
 
+## Live demo
+
+Try ClickBand online:
+
+[Open the live demo](https://www.scuolaclick.it/clickband_demo)
+
 ## Languages
 
 - `index.html`: English application.
