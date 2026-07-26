@@ -8,12 +8,26 @@ for(const f of ['RhythmPatternLibrary.js','MelodicRhythmGenerator.js','SongGener
 }
 function assert(c,m){if(!c)throw new Error(m)}
 let totalBars=0,totalEvents=0,modulated=0;
-for(const mode of ['major','minor']) for(const style of ['POP','ROCK','DANCE']) for(let i=0;i<30;i++){
+for(const mode of ['major','minor']) for(const style of ['POP','ROCK','DANCE','FOLK']) for(let i=0;i<30;i++){
   const cfg={tonic:'C4',mode,style,sectionPhraseCounts:{intro:1,verse:2,chorus:2,bridge:1,outro:1},structure:['intro','verse','chorus','verse','chorus','bridge','chorus','outro'],useTonal:false};
   const base=new context.SongGenerator(cfg).generate();
   assert(base && base.sections && base.structurePlan,'base song invalid');
+  if(style==='FOLK'){
+    for(const secName of Object.keys(base.sections)) for(const variant of Object.keys(base.sections[secName].phrases)){
+      const phrase=base.sections[secName].phrases[variant];
+      assert(phrase.rhythmPatterns.style==='FOLK','folk rhythm style lost');
+      assert(phrase.rhythmPatterns.ids.every(id=>/^folk_/.test(id)),'non-folk rhythm pattern selected');
+    }
+  }
   const arranged=new context.ArrangementGenerator().arrange(base);
   assert(arranged && arranged.sections && arranged.structurePlan,'arranged song invalid');
+  if(style==='FOLK'){
+    const firstSection=arranged.sections[Object.keys(arranged.sections)[0]];
+    const firstBar=firstSection.phrases[firstSection.sequence[0]][0];
+    assert(firstBar.voices.bass && firstBar.voices.bass.some(n=>n.role==='root-fifth'),'folk root-fifth bass missing');
+    assert(firstBar.voices.guitar && firstBar.voices.guitar.some(n=>n.role==='boom'),'folk boom-chick guitar missing');
+    assert(firstBar.voices.ostinato && firstBar.voices.ostinato.some(n=>n.role==='banjo-roll'),'folk banjo roll missing');
+  }
   // theoretical model must contain no MIDI properties
   const text=JSON.stringify(arranged);
   assert(!/"midi"\s*:/.test(text),'MIDI leaked into theoretical model');

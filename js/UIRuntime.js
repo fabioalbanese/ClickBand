@@ -370,7 +370,7 @@ const INSTRUMENTS = [
 const STYLES = {
     pop:{name:"🎵 Pop", bpm:120, melody:GM_COMPLETE.brightAcousticPiano, arp:GM_COMPLETE.electricPiano1, bass:GM_COMPLETE.fingerBass, guitar:GM_COMPLETE.steelStringGuitar, pad:GM_COMPLETE.stringEnsemble1, counter:GM_COMPLETE.electricPiano1, ostinato:GM_COMPLETE.electricPiano1, fx:GM_COMPLETE.glockenspiel, choir:GM_COMPLETE.choirAahs, brass:GM_COMPLETE.brassSectionOrBrass, strings:GM_COMPLETE.stringEnsemble1, chromatic:0.55, bassMode:"pop", guitarMode:"strum4", arpMode:"eighths", drumMode:"pop", voices:{arp:true,guitar:true,bass:true,chromatic:true,drums:true,pad:true,counter:true,ostinato:true,fx:true,choir:true,brass:true,strings:true}, bars:{intro:4, verse:8, chorus:8, bridge:4, outro:4, solo:8}},
 
-    folk:{name:"Acoustic Folk", bpm:108, melody:GM_COMPLETE.banjo, arp:GM_COMPLETE.steelStringGuitar, bass:GM_COMPLETE.acousticBass, guitar:GM_COMPLETE.acousticGuitar, pad:GM_COMPLETE.stringEnsemble1, counter:GM_COMPLETE.harmonica, ostinato:GM_COMPLETE.dulcimer, fx:GM_COMPLETE.glockenspiel, choir:GM_COMPLETE.voiceOohs, brass:GM_COMPLETE.harmonica, strings:GM_COMPLETE.fiddle, chromatic:0.32, bassMode:"root5", guitarMode:"folk8", arpMode:"simple", drumMode:"folk", voices:{arp:true,guitar:true,bass:true,chromatic:false,drums:true,pad:true,counter:true,ostinato:true,fx:true,choir:false,brass:false,strings:true}, bars:{intro:8, verse:8, chorus:8, bridge:6, outro:8, solo:8}},
+    folk:{name:"🪕 Folk / American Country", bpm:135, melody:GM_COMPLETE.harmonica, arp:GM_COMPLETE.steelStringGuitar, bass:GM_COMPLETE.acousticBass, guitar:GM_COMPLETE.banjo, pad:GM_COMPLETE.stringEnsemble1, counter:GM_COMPLETE.harmonica, ostinato:GM_COMPLETE.banjo, fx:GM_COMPLETE.glockenspiel, choir:GM_COMPLETE.voiceOohs, brass:GM_COMPLETE.harmonica, strings:GM_COMPLETE.fiddle, chromaticInstrument:GM_COMPLETE.acousticGrandPiano, chromatic:0.18, bassMode:"root5", guitarMode:"folk8", arpMode:"simple", drumMode:"folk", voices:{arp:true,guitar:true,bass:true,chromatic:false,drums:true,pad:true,counter:true,ostinato:true,fx:false,choir:false,brass:false,strings:true}, bars:{intro:8, verse:8, chorus:8, bridge:8, outro:8, solo:8}},
 
     rock:{name:"🎸 Light Rock", bpm:132, melody:GM_COMPLETE.overdrivenGuitar, arp:GM_COMPLETE.cleanGuitar, bass:GM_COMPLETE.pickedBass, guitar:GM_COMPLETE.distortedGuitar, pad:GM_COMPLETE.rockOrgan, counter:GM_COMPLETE.cleanGuitar, ostinato:GM_COMPLETE.mutedGuitar, fx:GM_COMPLETE.guitarFretNoise, choir:GM_COMPLETE.choirAahs, brass:GM_COMPLETE.brassSectionOrBrass, strings:GM_COMPLETE.synthStrings1, chromatic:0.40, bassMode:"rock", guitarMode:"power", arpMode:"eighths", drumMode:"rock", voices:{arp:true,guitar:true,bass:true,chromatic:true,drums:true,pad:true,counter:true,ostinato:true,fx:false,choir:false,brass:false,strings:false}, bars:{intro:4, verse:8, chorus:8, bridge:4, outro:4, solo:8}},
 
@@ -694,6 +694,7 @@ function applyStyleVoices(style) {
     setCheckboxValue("trackStrings", v.strings !== false);
     setCheckboxValue("trackDrums", v.drums !== false);
     setCheckboxValue("trackOstinato", v.ostinato !== false);
+    setCheckboxValue("trackFX", v.fx !== false);
     
     
 }
@@ -713,7 +714,7 @@ function applyStylePreset() {
     
     
     
-    const bpmRandom = Math.max(40, Math.min(240, st.bpm + rndInt(11) - 5));
+    const bpmRandom = Math.max(40, Math.min(240, st.bpm + Math.floor(Math.random() * 11) - 5));
     document.getElementById("bpmInput").value = bpmRandom;
     document.getElementById("bpmSlider").value = bpmRandom;
 
@@ -726,7 +727,7 @@ function applyStylePreset() {
     setSelectValue("instrumentOstinato", st.ostinato);
     setSelectValue("instrumentFX", st.fx);
     setSelectValue("instrumentChoir", st.choir);
-    setSelectValue("instrumentChromatic", GM_COMPLETE.acousticGrandPiano);
+    setSelectValue("instrumentChromatic", st.chromaticInstrument !== undefined ? st.chromaticInstrument : GM_COMPLETE.acousticGrandPiano);
     setSelectValue("instrumentBrass", st.brass);
     setSelectValue("instrumentStrings", st.strings);
     applyStyleVoices(st);
@@ -761,7 +762,7 @@ function synchronizeInstrumentsWithStyle(style) {
     if (document.getElementById("instrumentFX")) setSelectValue("instrumentFX", style.fx);
     if (document.getElementById("instrumentChoir")) setSelectValue("instrumentChoir", style.choir);
     if (document.getElementById("instrumentBrass")) setSelectValue("instrumentBrass", style.brass);
-    if (document.getElementById("instrumentChromatic")) setSelectValue("instrumentChromatic", style.melody); 
+    if (document.getElementById("instrumentChromatic")) setSelectValue("instrumentChromatic", style.chromaticInstrument !== undefined ? style.chromaticInstrument : style.melody); 
     if (document.getElementById("instrumentStrings")) setSelectValue("instrumentStrings", style.strings);
     applyStyleVoices(style);
     

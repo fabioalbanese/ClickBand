@@ -25,7 +25,12 @@
   function value(id, fallback) { var x=el(id); return x ? x.value : fallback; }
   function checked(id, fallback) { var x=el(id); return x ? !!x.checked : fallback; }
   function number(id, fallback) { var n=Number(value(id, fallback)); return Number.isFinite(n) ? n : fallback; }
-  function styleMap(v) { return v === "rock" ? "ROCK" : v === "disco" ? "DANCE" : "POP"; }
+  function styleMap(v) {
+    if (v === "rock") return "ROCK";
+    if (v === "disco") return "DANCE";
+    if (v === "folk") return "FOLK";
+    return "POP";
+  }
   function modeMap(v) { return v === "minor" ? "minor" : "major"; }
   function status(text) { var x=el("statusText"); if (x) { x.textContent=text; x.style.display="block"; } }
   function nextPaint() { return new Promise(function(resolve){ requestAnimationFrame(function(){ requestAnimationFrame(resolve); }); }); }

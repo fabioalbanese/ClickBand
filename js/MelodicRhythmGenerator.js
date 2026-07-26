@@ -102,11 +102,14 @@
     var section = String(sectionName || "verse").toLowerCase();
     if (section === "intro" || section === "outro") return ["sparse", "regular"];
     if (section === "chorus" || section === "only") {
-      return this.style === "DANCE" ? ["flowing", "syncopated", "regular"] : ["regular", "flowing", "syncopated"];
+      if (this.style === "DANCE") return ["flowing", "syncopated", "regular"];
+      if (this.style === "FOLK") return ["regular", "flowing", "sparse"];
+      return ["regular", "flowing", "syncopated"];
     }
-    if (section === "bridge") return ["syncopated", "sparse", "regular"];
+    if (section === "bridge") return this.style === "FOLK" ? ["sparse", "regular", "syncopated"] : ["syncopated", "sparse", "regular"];
     if (this.style === "ROCK") return ["regular", "syncopated", "sparse"];
     if (this.style === "DANCE") return ["syncopated", "flowing", "regular"];
+    if (this.style === "FOLK") return ["regular", "sparse", "flowing"];
     return ["regular", "sparse", "syncopated"];
   };
 

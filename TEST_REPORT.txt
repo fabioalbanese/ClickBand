@@ -1,0 +1,17 @@
+ClickBand Folk/Country preset verification
+
+Expected Folk defaults:
+- Main melody: Harmonica (22)
+- Chord guitar: Banjo (105)
+- Bass: Acoustic Bass (32)
+- Pad: String Ensemble 1 (48), enabled
+- Countermelody: Harmonica (22)
+- Ostinato: Banjo (105)
+- BPM randomized in range 130-140
+
+Tests executed:
+- tests/ui-style-flow.js
+- tests/all-style-midi-programs.js
+- tests/core-smoke.js
+
+All tests passed.

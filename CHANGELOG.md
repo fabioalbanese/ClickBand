@@ -1,3 +1,22 @@
+
+## Folk/Country default preset update
+
+- Main melody: Harmonica (GM 22).
+- Chord guitar: Banjo (GM 105).
+- Bass: Acoustic Bass (GM 32).
+- Pad: String Ensemble 1 (GM 48), enabled by default.
+- Countermelody: Harmonica (GM 22).
+- Ostinato: Banjo (GM 105).
+- Folk BPM base raised to 135, producing a randomized default range of 130–140 BPM.
+- UI and MIDI regression tests updated accordingly.
+
+## Folk / American Country
+
+- Added the selectable `folk` style and the `FOLK` application mapping.
+- Added 48 curated Folk/Country drum patterns covering initial, continuation and fill roles.
+- Added Folk-specific melodic rhythm, harmonic progressions and melodic preferences.
+- Added theoretical root-fifth bass, boom-chick guitar, banjo roll, harmonica and fiddle responses.
+- Extended core smoke tests to cover Folk generation, arrangement and MIDI rendering.
 ## 1.0.1 — Complete Italian/English localization
 
 - Completed all static interface translations, including buttons, labels, help text and player controls.
@@ -41,3 +60,13 @@
 - Expanded the theoretical and arranged data-model contracts.
 - Added copyable examples for composition, arrangement, MIDI rendering, serialization, custom voices and alternative renderers.
 - Linked all developer documentation from both README files.
+
+### Correzione preset Folk/Country
+- Completata l’assegnazione degli strumenti nel preset dell’interfaccia.
+- Chitarra Folk impostata su Steel-string Acoustic Guitar.
+- Sincronizzata anche la voce FX e resa esplicita l’assegnazione dello strumento cromatico.
+
+### Fixed — Folk/Country instrument preset application
+- Fixed the real UI execution path: `applyStylePreset()` called an undefined `rndInt()` after instrument menus were populated, so execution stopped before any preset assignment and every menu remained on General MIDI program 0 (Acoustic Grand Piano).
+- Added regression tests comparing the working Rock path with Folk in the actual `UIRuntime.js` functions.
+- Added MIDI Program Change verification for Fiddle, steel-string guitar, acoustic bass, harmonica and banjo.

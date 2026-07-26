@@ -242,7 +242,18 @@
 
   SongGenerator.prototype.generateProgression = function (sectionName) {
     var available=PROGRESSIONS[this.config.mode];
-    if (sectionName==="outro") available=this.config.mode==="major"?[["I","IV","V","I"],["I","ii","V","I"]]:[["i","iv","v","i"],["i","VI","VII","i"]];
+    if (this.config.style === "FOLK") {
+      if (this.config.mode === "major") {
+        if (sectionName === "bridge") available=[["vi","IV","I","V"],["IV","I","ii","V"]];
+        else if (sectionName === "outro") available=[["I","IV","V","I"],["I","V","I","I"]];
+        else if (sectionName === "chorus" || sectionName === "only") available=[["I","IV","V","I"],["IV","I","V","I"],["I","V","IV","I"]];
+        else available=[["I","IV","I","V"],["I","V","IV","I"],["I","IV","V","I"]];
+      } else {
+        if (sectionName === "bridge") available=[["VI","III","VII","i"],["iv","i","VII","i"]];
+        else if (sectionName === "outro") available=[["i","iv","v","i"],["i","VII","i","i"]];
+        else available=[["i","iv","i","v"],["i","VII","VI","i"],["i","iv","v","i"]];
+      }
+    } else if (sectionName==="outro") available=this.config.mode==="major"?[["I","IV","V","I"],["I","ii","V","I"]]:[["i","iv","v","i"],["i","VI","VII","i"]];
     else if (sectionName==="bridge") available=this.config.mode==="major"?[["vi","IV","I","V"],["ii","V","iii","vi"]]:[["VI","III","VII","i"],["iv","VII","III","VI"]];
     var selected=choice(available), result=[];
     for(var i=0;i<selected.length;i++){var chord=this.CHORDS[selected[i]]; result.push({symbol:chord.symbol,rootDegree:chord.rootDegree,degrees:chord.degrees.slice(),quality:chord.quality,inversion:chord.inversion,tones:chord.tones.map(function(t){return {degree:t.degree,octaveOffset:t.octaveOffset,accidental:t.accidental};})});}
@@ -336,6 +347,12 @@
       if(previousDegree!==null){var movement=circularDistance(degree,previousDegree);score+=movement*0.55;if(movement>=3)score+=1.5;}
       if(nextChord){var min=99;for(var i=0;i<nextChord.degrees.length;i++)min=Math.min(min,circularDistance(degree,nextChord.degrees[i]));score+=min*0.25;}
       if(closing){var preferred=sectionName==="bridge"?[5,2]:[1,3,5];score+=preferred.indexOf(degree)!==-1?-3.5:1.2;}
+      if(this.config.style === "FOLK") {
+        if ([1,2,3,5,6].indexOf(degree) !== -1) score -= 0.35;
+        if (strong && chord.degrees.indexOf(degree) !== -1) score -= 0.55;
+        if (previousDegree !== null && circularDistance(degree,previousDegree) <= 1) score -= 0.30;
+        if (degree === 7) score += 0.45;
+      }
       score+=Math.random()*0.7;candidates.push({degree:degree,score:score});
     }
     candidates.sort(function(a,b){return a.score-b.score;});return candidates[0].degree;
