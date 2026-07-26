@@ -156,27 +156,34 @@ ostinato, fx, drums, choir, brass, strings, guitarLead
 - Writes time-signature and key-signature meta events.
 - Does not compose, correct or replace musical notes.
 
-## Optional AI API
+## Optional deterministic humanization API
 
 ## `MidiImprover`
 
-Optional asynchronous post-processing wrapper.
+Optional asynchronous post-processing wrapper. Not AI: it delegates to
+`MidiHumanizer.js`, a local deterministic algorithm (seeded PRNG, fixed
+maximum percentages of timing/velocity/duration micro-variation). No model,
+no network call, no external dependency beyond `js/vendor/Midi.js`.
 
 ```js
 var improver = new MidiImprover(config);
-var improvedBytes = await improver.improve(midiBytes, function (progress) {
+var result = await improver.improve(midiBytes, function (progress) {
   console.log(progress);
 });
+// result: { midiBytes, engine, changed, warning }
 ```
 
 ### `improve(midiBytes, onProgress)`
 
 - Input: MIDI bytes.
-- Output: a `Promise` resolving to MIDI bytes.
-- Requires the configured AI engine and its third-party dependencies.
+- Output: a `Promise` resolving to `{ midiBytes, engine, changed, warning }`.
+  `engine` is `"disabled"`, `"deterministic-humanizer"`, or `"local-fallback"`;
+  `warning` is set (and the original `midiBytes` are returned unchanged) when
+  the config disables it, the humanizer isn't loaded, or it throws.
+- Requires `js/vendor/Midi.js`. No other third-party dependency.
 - Must be treated as post-processing; it does not replace the theoretical model.
 
-A host application should retain the original MIDI and use it as a fallback when AI processing fails.
+A host application should retain the original MIDI and use it as a fallback when humanization fails (`MidiImprover` already does this internally via `engine: "local-fallback"`).
 
 ## Application-only classes
 
@@ -202,7 +209,7 @@ Recommended core order:
 <script src="js/MidiGenerator.js"></script>
 ```
 
-Optional AI and application layers should be loaded afterward.
+Optional humanization (`js/vendor/Midi.js`, `MidiHumanizer.js`, `MidiImprover.js`) and application layers should be loaded afterward.
 
 ## Stability policy
 

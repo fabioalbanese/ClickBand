@@ -38,5 +38,5 @@ Instrument programs, volume, BPM, pan, enabled tracks and serialization belong i
 2. Run `node tests/core-smoke.js`.
 3. Verify that every local script and stylesheet referenced by both HTML files exists.
 4. Search project-owned JavaScript for unintended Italian identifiers or comments.
-5. Test generation, MIDI regeneration, AI on/off, player, MIDI download and MP3 rendering in a browser.
+5. Test generation, MIDI regeneration, MIDI humanization on/off, player, MIDI download and MP3 rendering in a browser.
 6. Update `CHANGELOG.md` and `RELEASE-MANIFEST.txt`.

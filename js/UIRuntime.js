@@ -1222,7 +1222,8 @@ window.addEventListener("DOMContentLoaded", function() {
     bjInitPlayerControls();
 
     
-    showEmptyStructure(); 
+    showEmptyStructure();
+    if (typeof window.ClickBandNotifyState === "function") window.ClickBandNotifyState();
 });
 
 
@@ -1255,3 +1256,135 @@ window.ClickBandLegacyBridge = {
         return song;
     }
 };
+
+/*
+ * ClickBandUIAdapter — full-UI implementation of the contract required by AppController.js.
+ * Owns every DOM read/write needed to run the generative pipeline from this page:
+ * translating this page's own control values (style/mode select) into the domain
+ * identifiers the engine expects, reading instrument/volume/track controls, showing
+ * status text, locking controls while busy, and wiring a freshly published MIDI
+ * result back into the live player, the debug printout and the download/MP3 controls.
+ * See js/AppController.js for the full contract documentation.
+ */
+(function () {
+    function styleMap(v) {
+        if (v === "rock") return "ROCK";
+        if (v === "disco") return "DANCE";
+        if (v === "folk") return "FOLK";
+        if (v === "latin") return "LATIN";
+        if (v === "jazz") return "JAZZ";
+        if (v === "blues") return "BLUES";
+        if (v === "celtic") return "CELTIC";
+        return "POP";
+    }
+    function modeMap(v) { return v === "minor" ? "minor" : "major"; }
+    function el(id) { return document.getElementById(id); }
+    function value(id, fallback) { var x = el(id); return x ? x.value : fallback; }
+    function checked(id, fallback) { var x = el(id); return x ? !!x.checked : fallback; }
+    function number(id, fallback) { var n = Number(value(id, fallback)); return Number.isFinite(n) ? n : fallback; }
+    function volume(id, fallback) { return Math.max(0, Math.min(127, Math.round(number(id, fallback) / 200 * 127))); }
+
+    var statusDict = {
+        "Improving the song…": "Sto migliorando il brano…",
+        "Generating the song…": "Sto generando il brano…",
+        "Preparing the instruments…": "Sto preparando gli strumenti…",
+        "Creating MIDI…": "Sto creando il MIDI…",
+        "Song ready.": "Brano pronto.",
+        "Generation error: ": "Errore nella generazione: ",
+        "Regenerating MIDI…": "Sto rigenerando il MIDI…",
+        "MIDI ready.": "MIDI pronto.",
+        "Regeneration error: ": "Errore nella rigenerazione: "
+    };
+    function localize(text) {
+        if (document.documentElement.lang !== "it") return text;
+        if (statusDict[text]) return statusDict[text];
+        for (var key in statusDict) if (text.indexOf(key) === 0) return statusDict[key] + text.slice(key.length);
+        return text;
+    }
+
+    window.ClickBandUIAdapter = {
+        setStatus: function (text) {
+            var shown = localize(text);
+            var node = el("statusText");
+            if (node) { node.textContent = shown; node.style.display = "block"; }
+        },
+        setBusy: function (busy) {
+            document.querySelectorAll("button,input,select,textarea").forEach(function (x) {
+                if (busy) { x.dataset.cbWasDisabled = x.disabled ? "1" : "0"; x.disabled = true; }
+                else { x.disabled = x.dataset.cbWasDisabled === "1"; delete x.dataset.cbWasDisabled; }
+            });
+        },
+        onStateChange: function (info) {
+            var regen = el("regenerateMidiButton"); if (regen) regen.disabled = !info.hasSong || info.busy;
+            var step = el("downloadStep"); if (step) step.classList.toggle("disabled", !info.hasMidi);
+            var mp3 = el("cbGenerateMp3Button"); if (mp3) mp3.disabled = !info.hasMidi || info.busy;
+            var gen = el("generateSongButton"); if (gen) gen.disabled = info.busy;
+            if (typeof window.cbSyncMp3Controls === "function" && !info.busy) window.cbSyncMp3Controls();
+        },
+        onMidiPublished: function (midi) {
+            if (typeof window.prepareMidiPlayerFromBytes === "function") window.prepareMidiPlayerFromBytes(midi, "ClickBand OOP");
+            if (typeof window.printSong === "function") window.printSong();
+            if (typeof window.cbResetMp3 === "function") window.cbResetMp3();
+            var step = el("downloadStep"); if (step) step.classList.remove("disabled");
+        },
+        onMidiCleared: function () {
+            var step = el("downloadStep"); if (step) step.classList.add("disabled");
+            if (typeof window.cbStopAll === "function") window.cbStopAll();
+            if (typeof window.cbResetMp3 === "function") window.cbResetMp3();
+        },
+        onError: function (message) {
+            alert(localize(message));
+        },
+        getBridge: function () { return window.ClickBandLegacyBridge; },
+        getSongConfig: function () {
+            var b = window.ClickBandLegacyBridge;
+            var info = b.getSectionsInfo(), counts = {};
+            Object.keys(info).forEach(function (k) { counts[k] = Math.max(1, Math.ceil(info[k].bars / 4)); });
+            return {
+                tonic: value("tonicSelect", "C4"),
+                mode: modeMap(value("scaleModeSelect", "major")),
+                style: styleMap(value("styleSelect", "pop")),
+                sectionPhraseCounts: counts,
+                structure: b.getStructure().slice(),
+                useTonal: true
+            };
+        },
+        getMidiConfig: function () {
+            return {
+                bpm: number("bpmInput", 120),
+                programs: {
+                    melody: getProgram("instrumentMelody", 0), arp: getProgram("instrumentArpeggio", 4),
+                    guitar: getProgram("instrumentGuitar", 25), bass: getProgram("instrumentBass", 33),
+                    chromatic: getProgram("instrumentChromatic", 10), pad: getProgram("instrumentPad", 88),
+                    counter: getProgram("instrumentCounter", 73), ostinato: getProgram("instrumentOstinato", 12),
+                    fx: getProgram("instrumentFX", 9), choir: getProgram("instrumentChoir", 52),
+                    brass: getProgram("instrumentBrass", 61), strings: getProgram("instrumentStrings", 48),
+                    guitarLead: 29
+                },
+                volumes: {
+                    melody: volume("volumeMelody", 125), arp: volume("volumeArpeggio", 85),
+                    guitar: volume("volumeGuitar", 80), bass: volume("volumeBass", 105),
+                    chromatic: volume("volumeChromatic", 75), pad: volume("volumePad", 65),
+                    counter: volume("volumeCounter", 75), ostinato: volume("volumeOstinato", 65),
+                    fx: volume("volumeFX", 75), drums: volume("volumeDrums", 95),
+                    choir: volume("volumeChoir", 85), brass: volume("volumeBrass", 85),
+                    strings: volume("volumeStrings", 65), guitarLead: 90
+                },
+                activeTracks: {
+                    melody: true,
+                    arp: checked("trackArpeggio", true), guitar: checked("trackGuitar", true), bass: checked("trackBass", true),
+                    chromatic: checked("trackChromatic", false), drums: checked("trackDrums", true), pad: checked("trackPad", false),
+                    counter: checked("trackCounter", false), ostinato: checked("trackOstinato", true), fx: checked("trackFX", false),
+                    choir: checked("trackChoir", false), brass: checked("trackBrass", false), strings: checked("trackStrings", false),
+                    guitarLead: false
+                }
+            };
+        },
+        getImprovementConfig: function () {
+            return {
+                enabled: checked("enableMidiHumanization", true),
+                intensity: number("humanizationIntensity", 0.55)
+            };
+        }
+    };
+})();

@@ -156,27 +156,36 @@ ostinato, fx, drums, choir, brass, strings, guitarLead
 - Scrive meta-eventi di metro e armatura.
 - Non compone, corregge o sostituisce note musicali.
 
-## API AI opzionale
+## API di humanizzazione deterministica opzionale
 
 ## `MidiImprover`
 
-Wrapper asincrono opzionale per la post-elaborazione.
+Wrapper asincrono opzionale per la post-elaborazione. Non è AI: delega a
+`MidiHumanizer.js`, un algoritmo locale deterministico (PRNG con seed fisso,
+percentuali massime prestabilite di micro-variazione su timing/velocity/
+durata). Nessun modello, nessuna chiamata di rete, nessuna dipendenza esterna
+oltre a `js/vendor/Midi.js`.
 
 ```js
 var improver = new MidiImprover(config);
-var improvedBytes = await improver.improve(midiBytes, function (progress) {
+var result = await improver.improve(midiBytes, function (progress) {
   console.log(progress);
 });
+// result: { midiBytes, engine, changed, warning }
 ```
 
 ### `improve(midiBytes, onProgress)`
 
 - Ingresso: byte MIDI.
-- Uscita: `Promise` risolta con byte MIDI.
-- Richiede il motore AI configurato e le relative dipendenze.
+- Uscita: `Promise` risolta con `{ midiBytes, engine, changed, warning }`.
+  `engine` vale `"disabled"`, `"deterministic-humanizer"` oppure
+  `"local-fallback"`; `warning` è valorizzato (e i `midiBytes` originali
+  restituiti invariati) quando la configurazione lo disattiva, l'humanizer non
+  è disponibile, oppure lancia un'eccezione.
+- Richiede `js/vendor/Midi.js`. Nessun'altra dipendenza di terze parti.
 - Va trattato come post-elaborazione e non sostituisce il modello teorico.
 
-L’applicazione ospite dovrebbe conservare il MIDI originale come fallback.
+L'applicazione ospite dovrebbe conservare il MIDI originale come fallback quando l'humanizzazione fallisce (`MidiImprover` lo fa già internamente tramite `engine: "local-fallback"`).
 
 ## Classi della sola applicazione
 
@@ -202,7 +211,7 @@ Ordine core consigliato:
 <script src="js/MidiGenerator.js"></script>
 ```
 
-Gli strati AI e applicativi opzionali vanno caricati successivamente.
+Gli strati opzionali di humanizzazione (`js/vendor/Midi.js`, `MidiHumanizer.js`, `MidiImprover.js`) e quelli applicativi vanno caricati successivamente.
 
 ## Politica di stabilità
 

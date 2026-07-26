@@ -11,14 +11,11 @@
 (function (global) {
   var locale = document.documentElement.lang === "it" ? "it" : "en";
   var dictionary = {
-    "Generation completed. The theoretical song and AI-improved MIDI are ready.": "Generazione completata. Il brano teorico e il MIDI migliorato con AI sono pronti.",
     "Generation completed. The theoretical song and original MIDI are ready.": "Generazione completata. Il brano teorico e il MIDI originale sono pronti.",
-    "MIDI regenerated and improved with AI. The theoretical song was not modified.": "MIDI rigenerato e migliorato con AI. Il brano teorico non è stato modificato.",
     "Original MIDI regenerated. The theoretical song was not modified.": "MIDI originale rigenerato. Il brano teorico non è stato modificato.",
     "Generating the theoretical song…": "Generazione del brano teorico…",
     "Generating all theoretical voices…": "Generazione di tutte le voci teoriche…",
     "Rendering MIDI…": "Creazione del MIDI…",
-    "Applying AI improvement…": "Applicazione del miglioramento AI…",
     "Regenerating MIDI from the theoretical song in memory…": "Rigenerazione del MIDI dal brano teorico in memoria…",
     "Generate a song first.": "Genera prima un brano.",
     "Generate a song to prepare the MIDI player.": "Genera un brano per preparare il player MIDI.",
@@ -27,7 +24,6 @@
     "MP3 is not ready yet.": "L’MP3 non è ancora pronto.",
     "Generate the MP3 first.": "Genera prima l’MP3.",
     "Audio rendering is still in progress…": "La preparazione dell’audio è ancora in corso…",
-    "AI engine is unavailable. The original MIDI was preserved.": "Il motore AI non è disponibile. È stato conservato il MIDI originale.",
     "No blocks yet: add Intro, Verse or Chorus.": "Nessun blocco: aggiungi Intro, Verse o Chorus.",
     "Remove": "Rimuovi",
     "Add one phrase (2 bars)": "Aggiungi una frase (2 battute)",
@@ -55,8 +51,6 @@
     if (dictionary[text]) return dictionary[text];
     return text
       .replace(/^Track (\d+)$/, "Traccia $1")
-      .replace(/^AI improvement: drums /, "Miglioramento AI: batteria ")
-      .replace(/^AI improvement: melody /, "Miglioramento AI: melodia ")
       .replace(/^Generation error: /, "Errore di generazione: ")
       .replace(/^MIDI regeneration error: /, "Errore nella rigenerazione MIDI: ")
       .replace(/^MP3 ready /, "MP3 pronto ")

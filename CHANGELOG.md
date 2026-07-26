@@ -129,3 +129,20 @@
 - Massimo 5% delle note melodiche idonee spostato di un solo slot temporaneo.
 - Inserimento deterministico e raro di micro-timing melodico diatoniche (massimo 2%).
 - La nota di destinazione e la durata complessiva del brano restano invariate.
+
+## AppController/UI adapter boundary
+
+- `AppController.js` no longer touches the DOM, `window.alert`, or any other presentation API. Every value that depends on a specific HTML page now crosses a single, mandatory boundary: `window.ClickBandUIAdapter`.
+- The adapter contract is mandatory: `AppController` throws a clear error if the adapter or any required method (`setStatus`, `setBusy`, `getBridge`, `getSongConfig`, `getMidiConfig`, `getImprovementConfig`) is missing, instead of silently falling back to hardcoded element ids.
+- Added optional adapter hooks — `onStateChange`, `onMidiPublished`, `onMidiCleared`, `onError` — so a front end can react to pipeline state without `AppController` knowing about its specific buttons.
+- `UIRuntime.js` now implements the full contract for the complete UI (`index.html`/`index.it.html`), including the style/mode → domain-identifier mapping that previously lived in `AppController.js`.
+- `index.kids.html`/`index.kids.it.html` required no changes: their existing inline adapter already satisfied the contract, confirming it is genuinely markup-agnostic.
+- Documented the contract in `docs/ARCHITECTURE.md`/`.it.md`.
+- Added `tests/appcontroller-adapter-contract.js`: an end-to-end regression test that loads the real production modules in a minimal VM DOM and drives `generateSong()`/`regenerateMidi()` through the real adapter for all 8 styles, verifies `AppController` refuses to run with no adapter installed, and checks that button-state and status-text side effects actually reach the fake DOM.
+
+## Documentation and dictionary accuracy: no more stale "AI" references
+
+- The post-processing engine has been deterministic (no AI/ML/Magenta) since Magenta was removed; the running application, `README.md` and `TEST_REPORT_OFFLINE_HUMANIZER.txt` already said so correctly, but several reference documents still described the removed AIImprover.js/AIEngine.js/Magenta pipeline. Fixed:
+  - `docs/ARCHITECTURE.md`/`.it.md`, `docs/API_REFERENCE.md`/`.it.md`, `docs/DEVELOPMENT.md`: replaced "AI"/"Magenta" wording with accurate descriptions of `MidiImprover.js`/`MidiHumanizer.js` (deterministic, seeded, local, no models).
+  - Removed 5 dead dictionary entries in `Locale.js` ("AI improvement…", "AI engine is unavailable…", "AI-improved MIDI…") that no current code path produces.
+- Removed a `node_modules/` directory (~27 MB, installed for local testing purposes only) that had been accidentally included in a prior packaged ZIP, contradicting `README.md`'s "no package manager required" claim. Repackaged and re-verified from a clean extraction.
