@@ -14,10 +14,13 @@
     arranged: null,
     originalMidi: null,
     midi: null,
-    aiResult: null
+    improvementResult: null
   };
 
+  function adapter() { return global.ClickBandUIAdapter || null; }
   function bridge() {
+    var a=adapter();
+    if (a && a.getBridge) return a.getBridge();
     if (!global.ClickBandLegacyBridge) throw new Error("ClickBand UI bridge is not available.");
     return global.ClickBandLegacyBridge;
   }
@@ -29,11 +32,20 @@
     if (v === "rock") return "ROCK";
     if (v === "disco") return "DANCE";
     if (v === "folk") return "FOLK";
+    if (v === "latin") return "LATIN";
+    if (v === "jazz") return "JAZZ";
+    if (v === "blues") return "BLUES";
+    if (v === "celtic") return "CELTIC";
     return "POP";
   }
   function modeMap(v) { return v === "minor" ? "minor" : "major"; }
-  function status(text) { var x=el("statusText"); if (x) { x.textContent=text; x.style.display="block"; } }
+  function status(text) {
+    var a=adapter();
+    if (a && a.setStatus) { a.setStatus(text); return; }
+    var x=el("statusText"); if (x) { x.textContent=text; x.style.display="block"; }
+  }
   function nextPaint() { return new Promise(function(resolve){ requestAnimationFrame(function(){ requestAnimationFrame(resolve); }); }); }
+  function uiText(it, en) { return document.documentElement.lang === "it" ? it : en; }
 
   function sectionCounts() {
     var info=bridge().getSectionsInfo(), out={};
@@ -59,6 +71,8 @@
     });
   }
   function songSnapshot() {
+    var a=adapter();
+    if (a && a.getSongConfig) return Object.freeze(a.getSongConfig());
     var b=bridge();
     return Object.freeze({
       tonic:value("tonicSelect","C4"), mode:modeMap(value("scaleModeSelect","major")),
@@ -67,15 +81,21 @@
     });
   }
   function midiSnapshot() {
+    var a=adapter();
+    if (a && a.getMidiConfig) return Object.freeze(a.getMidiConfig());
     return Object.freeze({bpm:number("bpmInput",120),programs:programs(),volumes:volumes(),activeTracks:activeTracks()});
   }
-  function aiSnapshot() {
+  function improvementSnapshot() {
+    var a=adapter();
+    if (a && a.getImprovementConfig) return Object.freeze(a.getImprovementConfig());
     return Object.freeze({
-      enabled: checked("enableAIImprovement", true),
-      temperature: number("cbMelTemp", 0.15)
+      enabled: checked("enableMidiHumanization", true),
+      intensity: number("humanizationIntensity", 0.55)
     });
   }
   function lockUI() {
+    var a=adapter();
+    if (a && a.setBusy) { a.setBusy(true); return function(){ a.setBusy(false); restoreUIFromState(); }; }
     var saved=[];
     document.querySelectorAll("button,input,select,textarea").forEach(function(x){ saved.push([x,!!x.disabled]); x.disabled=true; });
     return function(){ saved.forEach(function(pair){ pair[0].disabled=pair[1]; }); restoreUIFromState(); };
@@ -86,11 +106,12 @@
     var step=el("downloadStep"); if(step) step.classList.toggle("disabled",!hasMidi);
     var mp3=el("cbGenerateMp3Button"); if(mp3) mp3.disabled=!hasMidi||state.busy;
     var gen=el("generateSongButton"); if(gen) gen.disabled=state.busy;
+    if (typeof global.cbSyncMp3Controls === "function" && !state.busy) global.cbSyncMp3Controls();
   }
   function clearMidiResult() {
     state.originalMidi=null;
     state.midi=null;
-    state.aiResult=null;
+    state.improvementResult=null;
     var legacy=bridge().getSongState()||{}; legacy.midiBytes=null; bridge().setSongState(legacy);
     var step=el("downloadStep"); if(step) step.classList.add("disabled");
     if (typeof global.cbStopAll === "function") global.cbStopAll();
@@ -108,8 +129,8 @@
     var step=el("downloadStep"); if(step) step.classList.remove("disabled");
   }
 
-  function improveMidiIfRequested(originalMidi, aiConfig) {
-    if (!aiConfig.enabled) {
+  function improveMidiIfRequested(originalMidi, improvementConfig) {
+    if (!improvementConfig.enabled) {
       return Promise.resolve({
         midiBytes: originalMidi,
         engine: "disabled",
@@ -118,12 +139,11 @@
       });
     }
 
-    status("Applying AI improvement…");
+    status(uiText("Sto migliorando il brano…", "Improving the song…"));
     return nextPaint().then(function () {
-      var improver = new global.AIImprover(aiConfig);
+      var improver = new global.MidiImprover(improvementConfig);
       return improver.improve(originalMidi, function (phase, index, total) {
-        var label = phase === "drums" ? "drums" : "melody";
-        status("AI improvement: " + label + " " + index + "/" + total + "…");
+        status(uiText("Sto migliorando il brano…", "Improving the song…"));
       });
     });
   }
@@ -133,33 +153,33 @@
     if (state.busy) return null;
     var songConfig=songSnapshot();
     var midiConfig=midiSnapshot();
-    var aiConfig=aiSnapshot();
+    var improvementConfig=improvementSnapshot();
     state.busy=true;
     var unlock=lockUI();
     clearMidiResult();
     try {
-      status("Generating the theoretical song…"); await nextPaint();
+      status(uiText("Sto generando il brano…", "Generating the song…")); await nextPaint();
       state.canonical=new global.SongGenerator(songConfig).generate();
 
-      status("Generating all theoretical voices…"); await nextPaint();
+      status(uiText("Sto preparando gli strumenti…", "Preparing the instruments…")); await nextPaint();
       state.arranged=new global.ArrangementGenerator().arrange(state.canonical);
 
-      status("Rendering MIDI…"); await nextPaint();
+      status(uiText("Sto creando il MIDI…", "Creating MIDI…")); await nextPaint();
       state.originalMidi=new global.MidiGenerator(midiConfig).generate(state.arranged);
 
-      state.aiResult=await improveMidiIfRequested(state.originalMidi, aiConfig);
-      publishMidi(state.aiResult.midiBytes);
+      state.improvementResult=await improveMidiIfRequested(state.originalMidi, improvementConfig);
+      publishMidi(state.improvementResult.midiBytes);
 
-      if (state.aiResult.warning) {
-        status(state.aiResult.warning);
-      } else if (state.aiResult.changed) {
-        status("Generation completed. The theoretical song and AI-improved MIDI are ready.");
+      if (state.improvementResult.warning) {
+        status(state.improvementResult.warning);
+      } else if (state.improvementResult.changed) {
+        status(uiText("Brano pronto.", "Song ready."));
       } else {
-        status("Generation completed. The theoretical song and original MIDI are ready.");
+        status(uiText("Brano pronto.", "Song ready."));
       }
-      return state.aiResult.midiBytes;
+      return state.improvementResult.midiBytes;
     } catch(err) {
-      console.error(err); clearMidiResult(); status("Generation error: "+err.message); alert("Generation error: "+err.message); throw err;
+      console.error(err); clearMidiResult(); status(uiText("Errore nella generazione.", "Generation error.")); alert(uiText("Errore nella generazione: ", "Generation error: ")+err.message); throw err;
     } finally {
       state.busy=false; unlock();
     }
@@ -168,27 +188,27 @@
   AppController.prototype.regenerateMidi = async function () {
     if (state.busy || !state.arranged) return null;
     var midiConfig=midiSnapshot();
-    var aiConfig=aiSnapshot();
+    var improvementConfig=improvementSnapshot();
     state.busy=true;
     var unlock=lockUI();
     clearMidiResult();
     try {
-      status("Regenerating MIDI from the theoretical song in memory…"); await nextPaint();
+      status(uiText("Sto rigenerando il MIDI…", "Regenerating MIDI…")); await nextPaint();
       state.originalMidi=new global.MidiGenerator(midiConfig).generate(state.arranged);
 
-      state.aiResult=await improveMidiIfRequested(state.originalMidi, aiConfig);
-      publishMidi(state.aiResult.midiBytes);
+      state.improvementResult=await improveMidiIfRequested(state.originalMidi, improvementConfig);
+      publishMidi(state.improvementResult.midiBytes);
 
-      if (state.aiResult.warning) {
-        status(state.aiResult.warning);
-      } else if (state.aiResult.changed) {
-        status("MIDI regenerated and improved with AI. The theoretical song was not modified.");
+      if (state.improvementResult.warning) {
+        status(state.improvementResult.warning);
+      } else if (state.improvementResult.changed) {
+        status(uiText("MIDI pronto.", "MIDI ready."));
       } else {
-        status("Original MIDI regenerated. The theoretical song was not modified.");
+        status(uiText("MIDI pronto.", "MIDI ready."));
       }
-      return state.aiResult.midiBytes;
+      return state.improvementResult.midiBytes;
     } catch(err) {
-      console.error(err); clearMidiResult(); status("MIDI regeneration error: "+err.message); alert("MIDI regeneration error: "+err.message); throw err;
+      console.error(err); clearMidiResult(); status(uiText("Errore nella rigenerazione.", "Regeneration error.")); alert(uiText("Errore nella rigenerazione: ", "Regeneration error: ")+err.message); throw err;
     } finally {
       state.busy=false; unlock();
     }
@@ -202,7 +222,8 @@
     getArrangedSong:function(){return state.arranged;},
     getOriginalMidi:function(){return state.originalMidi;},
     getMidi:function(){return state.midi;},
-    getAIResult:function(){return state.aiResult;},
+    getImprovementResult:function(){return state.improvementResult;},
+    getAIResult:function(){return state.improvementResult;},
     isBusy:function(){return state.busy;}
   };
   global.AppController=AppController;

@@ -129,8 +129,14 @@
 
 
 
-    var applied=chorusIndexes.length>=2 && Math.random()<0.25;
-    var triggerIndex=applied?chorusIndexes[chorusIndexes.length-1]:-1;
+    // Optional +1 semitone lift: 40% overall, never on the first chorus.
+    // With three or more choruses, the lift starts either on chorus 2 or chorus 3.
+    var applied=chorusIndexes.length>=2 && Math.random()<0.40;
+    var triggerIndex=-1, triggerChorusOccurrence=0;
+    if(applied){
+      triggerChorusOccurrence=(chorusIndexes.length>=3 && Math.random()>=0.50)?3:2;
+      triggerIndex=chorusIndexes[triggerChorusOccurrence-1];
+    }
 
     for(i=0;i<structure.length;i++){
       var sectionId=structure[i];
@@ -147,8 +153,9 @@
       entries:entries,
       modulation:{
         applied:applied,
-        probability:0.25,
+        probability:0.40,
         triggerStructureIndex:triggerIndex,
+        triggerChorusOccurrence:triggerChorusOccurrence,
         shiftSemitones:applied?1:0,
         returnAtOutro:applied && structure.indexOf("outro",triggerIndex)!==-1
       }
@@ -253,6 +260,48 @@
         else if (sectionName === "outro") available=[["i","iv","v","i"],["i","VII","i","i"]];
         else available=[["i","iv","i","v"],["i","VII","VI","i"],["i","iv","v","i"]];
       }
+    } else if (this.config.style === "LATIN") {
+      if (this.config.mode === "major") {
+        if (sectionName === "bridge") available=[["ii","V","I","vi"],["IV","V","iii","vi"]];
+        else if (sectionName === "outro") available=[["ii","V","I","I"],["IV","V","I","I"]];
+        else if (sectionName === "chorus" || sectionName === "only") available=[["I","vi","ii","V"],["ii","V","I","vi"],["IV","V","iii","vi"]];
+        else available=[["I","vi","ii","V"],["I","IV","ii","V"],["vi","ii","V","I"]];
+      } else {
+        if (sectionName === "bridge") available=[["iv","VII","III","VI"],["iv","v","i","VI"]];
+        else if (sectionName === "outro") available=[["iv","v","i","i"],["VI","VII","i","i"]];
+        else available=[["i","VI","iv","v"],["i","iv","VII","III"],["iv","v","i","VI"]];
+      }
+    } else if (this.config.style === "JAZZ") {
+      if (this.config.mode === "major") {
+        if (sectionName === "bridge") available=[["iii","vi","ii","V"],["IV","V","I","vi"]];
+        else if (sectionName === "outro") available=[["ii","V","I","I"],["I","vi","ii","V"]];
+        else if (sectionName === "chorus" || sectionName === "only") available=[["ii","V","I","vi"],["I","vi","ii","V"],["iii","vi","ii","V"]];
+        else available=[["I","vi","ii","V"],["ii","V","iii","vi"],["I","IV","iii","vi"]];
+      } else {
+        if (sectionName === "bridge") available=[["iv","VII","III","VI"],["iv","v","i","VI"]];
+        else if (sectionName === "outro") available=[["iv","v","i","i"],["VI","v","i","i"]];
+        else available=[["i","VI","iv","v"],["iv","v","i","VI"],["i","iv","VII","III"]];
+      }
+    } else if (this.config.style === "BLUES") {
+      if (this.config.mode === "major") {
+        if (sectionName === "bridge") available=[["IV","IV","I","I"],["ii","V","I","vi"]];
+        else if (sectionName === "outro") available=[["I","IV","V","I"],["I","V","IV","I"]];
+        else available=[["I","IV","I","V"],["I","I","IV","V"],["I","IV","V","I"]];
+      } else {
+        if (sectionName === "bridge") available=[["iv","iv","i","i"],["VI","VII","i","v"]];
+        else if (sectionName === "outro") available=[["i","iv","v","i"],["i","VII","iv","i"]];
+        else available=[["i","iv","i","v"],["i","i","iv","v"],["i","iv","v","i"]];
+      }
+    } else if (this.config.style === "CELTIC") {
+      if (this.config.mode === "major") {
+        if (sectionName === "bridge") available=[["vi","IV","I","V"],["IV","I","V","vi"]];
+        else if (sectionName === "outro") available=[["I","IV","V","I"],["I","V","I","I"]];
+        else available=[["I","V","vi","IV"],["I","IV","I","V"],["vi","IV","I","V"]];
+      } else {
+        if (sectionName === "bridge") available=[["VI","III","VII","i"],["iv","VII","III","i"]];
+        else if (sectionName === "outro") available=[["i","VII","VI","i"],["i","iv","v","i"]];
+        else available=[["i","VII","VI","VII"],["i","VI","III","VII"],["i","iv","VII","i"]];
+      }
     } else if (sectionName==="outro") available=this.config.mode==="major"?[["I","IV","V","I"],["I","ii","V","I"]]:[["i","iv","v","i"],["i","VI","VII","i"]];
     else if (sectionName==="bridge") available=this.config.mode==="major"?[["vi","IV","I","V"],["ii","V","iii","vi"]]:[["VI","III","VII","i"],["iv","VII","III","VI"]];
     var selected=choice(available), result=[];
@@ -347,6 +396,30 @@
       if(previousDegree!==null){var movement=circularDistance(degree,previousDegree);score+=movement*0.55;if(movement>=3)score+=1.5;}
       if(nextChord){var min=99;for(var i=0;i<nextChord.degrees.length;i++)min=Math.min(min,circularDistance(degree,nextChord.degrees[i]));score+=min*0.25;}
       if(closing){var preferred=sectionName==="bridge"?[5,2]:[1,3,5];score+=preferred.indexOf(degree)!==-1?-3.5:1.2;}
+      if (this.config.style === "LATIN") {
+        if ([1,2,3,5,6].indexOf(degree) !== -1) score -= 0.25;
+        if (!strong && previousDegree !== null && circularDistance(degree,previousDegree) === 1) score -= 0.30;
+        if (strong && chord.degrees.indexOf(degree) !== -1) score -= 0.45;
+        if (degree === 4 || degree === 7) score += strong ? 0.25 : -0.10;
+      }
+      if (this.config.style === "JAZZ") {
+        if (strong && chord.degrees.indexOf(degree) !== -1) score -= 0.60;
+        if (!strong && (degree === 2 || degree === 4 || degree === 6 || degree === 7)) score -= 0.28;
+        if (previousDegree !== null && circularDistance(degree,previousDegree) <= 1) score -= 0.22;
+        if (closing && (degree === 1 || degree === 3)) score -= 0.35;
+      }
+      if (this.config.style === "BLUES") {
+        if (strong && chord.degrees.indexOf(degree) !== -1) score -= 0.45;
+        if (!strong && (degree === 3 || degree === 5 || degree === 7)) score -= 0.22;
+        if (previousDegree !== null && circularDistance(degree,previousDegree) <= 2) score -= 0.18;
+        if (closing && (degree === 1 || degree === 5)) score -= 0.40;
+      }
+      if (this.config.style === "CELTIC") {
+        if ([1,2,3,5,6].indexOf(degree) !== -1) score -= 0.32;
+        if (strong && chord.degrees.indexOf(degree) !== -1) score -= 0.48;
+        if (previousDegree !== null && circularDistance(degree,previousDegree) === 1) score -= 0.35;
+        if (degree === 7 && this.config.mode === "minor") score -= 0.12;
+      }
       if(this.config.style === "FOLK") {
         if ([1,2,3,5,6].indexOf(degree) !== -1) score -= 0.35;
         if (strong && chord.degrees.indexOf(degree) !== -1) score -= 0.55;

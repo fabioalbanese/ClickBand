@@ -1,3 +1,50 @@
+## Chorus lift rule update
+
+- Optional +1-semitone lift now occurs in 40% of generations.
+- The first chorus is never transposed.
+- The lift begins on chorus 2 or, when present, chorus 3.
+- Major and minor modes preserve their mode during transposition.
+
+## 1.2.1
+- Rimossa completamente ogni generazione o inserimento di note melodiche.
+- L’humanizer della melodia modifica soltanto il timing degli attacchi di ±1/64, preservando numero, altezza e durata delle note.
+
+## 1.1.2 — MP3 completion UI fix
+
+- Simplified the final rendering message to `MP3 ready.` / `MP3 pronto.`
+- Centralized MP3 button-state synchronization in `AudioController`.
+- Fixed an intermittent race where the MP3 blob was ready but the download button remained disabled.
+- Re-applies the ready state after browser painting and at the end of the rendering task.
+
+
+## UI semplificata
+
+- Rimossi testi descrittivi non necessari dall’interfaccia italiana e inglese.
+- Ridotti i messaggi di stato a indicazioni operative brevi.
+- Mantenuti invariati motore musicale, humanizer offline e formati di esportazione.
+# ClickBand changelog
+
+## Offline deterministic humanization build
+
+- Removed Magenta, its remote checkpoints and the bundled Magenta runtime.
+- Added browser-local deterministic MIDI humanization for timing, velocity and duration.
+- Added Light, Natural and Expressive intensity profiles.
+- Preserved the original MIDI as a safe fallback if post-processing fails.
+- Added track-aware profiles and protection for strong kick, snare and crash accents.
+- Updated Italian and English UI, documentation and third-party notices.
+- Confirmed that the application source contains no model or CDN requests.
+
+## Blues and Celtic styles
+
+- Added complete BLUES and CELTIC pipelines, presets, 48 rhythmic patterns each, melodic behavior, arrangements and regression tests.
+- Updated Folk/Country defaults: Fiddle main melody, Violin arpeggio, Banjo chord guitar; added rhythmic fiddle sawstroke arrangement.
+
+## Jazz / Swing
+- Added end-to-end JAZZ style with UI presets, 48 unique swing patterns, jazz melodic rhythm, ii–V–I harmony, walking bass, piano/guitar comping, vibraphone responses and regression tests.
+
+## Latin / Salsa
+- Added end-to-end LATIN style, UI presets, 48 unique rhythm patterns, melodic rhythm, harmony, arrangement and regression tests.
+
 
 ## Folk/Country default preset update
 
@@ -70,3 +117,15 @@
 - Fixed the real UI execution path: `applyStylePreset()` called an undefined `rndInt()` after instrument menus were populated, so execution stopped before any preset assignment and every menu remained on General MIDI program 0 (Acoustic Grand Piano).
 - Added regression tests comparing the working Rock path with Folk in the actual `UIRuntime.js` functions.
 - Added MIDI Program Change verification for Fiddle, steel-string guitar, acoustic bass, harmonica and banjo.
+
+## Humanizer batteria su griglia 64
+- Ogni battuta 4/4 viene trattata come 64 posizioni temporanee (4 sotto-slot per ciascuno dei 16 step originali).
+- Al massimo il 5% degli eventi di batteria viene anticipato o ritardato di un solo sotto-slot.
+- Sono protetti primo colpo della battuta, kick strutturali, backbeat di snare, crash principali e chiusure dei fill di tom.
+- La selezione resta deterministica a parità di MIDI e seed.
+
+## Offline humanizer 1.2.0
+- Microtiming della melodia principale su griglia temporanea da 64 slot.
+- Massimo 5% delle note melodiche idonee spostato di un solo slot temporaneo.
+- Inserimento deterministico e raro di micro-timing melodico diatoniche (massimo 2%).
+- La nota di destinazione e la durata complessiva del brano restano invariate.

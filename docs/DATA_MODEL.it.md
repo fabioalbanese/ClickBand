@@ -96,15 +96,16 @@ La stessa definizione di sezione può apparire più volte.
 }
 ```
 
-`shiftSemitones` è relativo a `metadata.tonic`. Permette la modulazione dell’ultimo chorus mantenendo riutilizzabile il materiale della sezione. L’outro può tornare esplicitamente a `0`.
+`shiftSemitones` è relativo a `metadata.tonic`. Permette la modulazione dal secondo o dal terzo chorus mantenendo riutilizzabile il materiale della sezione. L’outro può tornare esplicitamente a `0`.
 
 ### ModulationMetadata
 
 ```js
 {
   applied: true,
-  probability: 0.25,
+  probability: 0.40,
   triggerStructureIndex: 5,
+  triggerChorusOccurrence: 2,
   shiftSemitones: 1,
   returnAtOutro: true
 }

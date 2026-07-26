@@ -17,7 +17,7 @@
 <h1>🎵 ClickBand Junior 3.0</h1>
 <div class="subtitle">by Fabio Albanese 2026</div>
 <div class="subtitle"><strong>Lingua:</strong> <a href="index.html">English</a> · <a href="index.it.html">Italiano</a></div>
-<div class="subtitle">Generatore MIDI e audio utilizzabile interamente nel browser, con player integrato, esportazione MIDI/MP3 e visualizzazione in tempo reale.</div>
+<div class="subtitle">Generatore musicale MIDI e MP3.</div>
 <div class="subtitle">IMPORTANTE: questo progetto è ancora in fase di sviluppo</div>
 </header>
 <div class="wrap">
@@ -30,6 +30,10 @@
 <option value="rock">🎸 Rock leggero</option>
 <option value="disco">✨ Disco dance</option>
 <option value="folk">🪕 Folk / Country americano</option>
+<option value="latin">💃 Latin / Salsa</option>
+<option value="jazz">🎷 Jazz / Swing</option>
+<option value="blues">🎸 Blues</option>
+<option value="celtic">☘️ Celtic / Folk irlandese</option>
 </select>
 </div>
 <div class="control">
@@ -57,7 +61,7 @@
 <input checked="" id="styleBasedIntro" type="checkbox"/>
           Automatic by style
         </label>
-<div class="mini">Disattivato: tutti gli strumenti entrano immediatamente.</div>
+
 </div>
 <div class="control">
 <label style="display:flex;align-items:center;gap:8px;cursor:pointer;">
@@ -70,7 +74,6 @@
 <div class="builderTitle">
 <div>
 <b>🧱 Costruisci il brano</b>
-<div class="mini">Fai clic per aggiungere, trascina per riordinare e usa ✕ per rimuovere.</div>
 </div>
 <div class="builderActions">
 <button class="tinyBtn" onclick="resetStructure()">↺ Struttura predefinita</button>
@@ -91,7 +94,6 @@
 <div class="panel">
 <div class="sectionTitle">
 <h2>🎛️ La tua band</h2>
-<div class="help">Attiva o disattiva ogni musicista e scegli uno strumento.</div>
 </div>
 <div class="bandgrid">
 <div class="voice locked">
@@ -100,103 +102,104 @@
 <div class="switchrow"><label>🌊 Sustain dinamico</label><input id="melodyDynamicSustain" type="checkbox"/></div>
 <select class="instrument" id="instrumentMelody"></select>
 <div class="playerRow" style="margin:8px 0"><label>Volume <b id="volumeMelodyValue">125%</b></label><input data-channel="0" id="volumeMelody" max="200" min="0" step="5" style="width:100%" type="range" value="125"/></div>
-<small>La linea melodica principale del brano.</small>
+
 </div>
 <div class="voice">
 <div class="title">🎹 Arpeggio</div>
 <div class="switchrow"><label>Attiva</label><input checked="" id="trackArpeggio" type="checkbox"/></div>
 <select class="instrument" id="instrumentArpeggio"></select>
 <div class="playerRow" style="margin:8px 0"><label>Volume <b id="volumeArpeggioValue">85%</b></label><input data-channel="1" id="volumeArpeggio" max="200" min="0" step="5" style="width:100%" type="range" value="85"/></div>
-<small>Riempie gli accordi con note spezzate.</small>
+
 </div>
 <div class="voice">
 <div class="title">🎸 Chitarra ritmica</div>
 <div class="switchrow"><label>Attiva</label><input checked="" id="trackGuitar" type="checkbox"/></div>
 <select class="instrument" id="instrumentGuitar"></select>
 <div class="playerRow" style="margin:8px 0"><label>Volume <b id="volumeGuitarValue">80%</b></label><input data-channel="3" id="volumeGuitar" max="200" min="0" step="5" style="width:100%" type="range" value="80"/></div>
-<small>Accompagnamento ritmico ad accordi.</small>
+
 </div>
 <div class="voice">
 <div class="title">🎸 Basso</div>
 <div class="switchrow"><label>Attiva</label><input checked="" id="trackBass" type="checkbox"/></div>
 <select class="instrument" id="instrumentBass"></select>
 <div class="playerRow" style="margin:8px 0"><label>Volume <b id="volumeBassValue">105%</b></label><input data-channel="2" id="volumeBass" max="200" min="0" step="5" style="width:100%" type="range" value="105"/></div>
-<small>Fondamentale e quinta tengono insieme la band.</small>
+
 </div>
 <div class="voice accessory-voice">
 <div class="title">✨ Note cromatiche</div>
 <div class="switchrow"><label>Attiva</label><input id="trackChromatic" type="checkbox"/></div>
 <select class="instrument" id="instrumentChromatic"></select>
 <div class="playerRow" style="margin:8px 0"><label>Volume <b id="volumeChromaticValue">75%</b></label><input data-channel="4" id="volumeChromatic" max="200" min="0" step="5" style="width:100%" type="range" value="75"/></div>
-<small>Piccoli passaggi controllati di semitono.</small>
+
 </div>
 <div class="voice">
 <div class="title">🥁 Batteria</div>
 <div class="switchrow"><label>Attiva</label><input checked="" id="trackDrums" type="checkbox"/></div>
 <select disabled=""><option>Kit batteria MIDI</option></select>
 <div class="playerRow" style="margin:8px 0"><label>Volume <b id="volumeDrumsValue">95%</b></label><input data-channel="9" id="volumeDrums" max="200" min="0" step="5" style="width:100%" type="range" value="95"/></div>
-<small>Cassa, rullante, charleston e brevi fill.</small>
+
 </div>
 <div class="voice accessory-voice">
 <div class="title">🌫️ Pad / archi sostenuti</div>
 <div class="switchrow"><label>Attiva</label><input id="trackPad" type="checkbox"/></div>
 <select class="instrument" id="instrumentPad"></select>
 <div class="playerRow" style="margin:8px 0"><label>Volume <b id="volumePadValue">65%</b></label><input data-channel="5" id="volumePad" max="200" min="0" step="5" style="width:100%" type="range" value="65"/></div>
-<small>Accordi lunghi che riempiono lo sfondo.</small>
+
 </div>
 <div class="voice accessory-voice">
 <div class="title">🎶 Contromelodia</div>
 <div class="switchrow"><label>Attiva</label><input id="trackCounter" type="checkbox"/></div>
 <select class="instrument" id="instrumentCounter"></select>
 <div class="playerRow" style="margin:8px 0"><label>Volume <b id="volumeCounterValue">75%</b></label><input data-channel="6" id="volumeCounter" max="200" min="0" step="5" style="width:100%" type="range" value="75"/></div>
-<small>Risponde alla melodia quando c’è spazio.</small>
+
 </div>
 <div class="voice">
 <div class="title">🔁 Ostinato</div>
 <div class="switchrow"><label>Attiva</label><input checked="" id="trackOstinato" type="checkbox"/></div>
 <select class="instrument" id="instrumentOstinato"></select>
 <div class="playerRow" style="margin:8px 0"><label>Volume <b id="volumeOstinatoValue">65%</b></label><input data-channel="7" id="volumeOstinato" max="200" min="0" step="5" style="width:100%" type="range" value="65"/></div>
-<small>A short repeating figure, especially in choruses.</small>
+
 </div>
 <div class="voice">
 <div class="title">🔔 Effetti leggeri</div>
 <div class="switchrow"><label>Attiva</label><input id="trackFX" type="checkbox"/></div>
 <select class="instrument" id="instrumentFX"></select>
 <div class="playerRow" style="margin:8px 0"><label>Volume <b id="volumeFXValue">75%</b></label><input data-channel="8" id="volumeFX" max="200" min="0" step="5" style="width:100%" type="range" value="75"/></div>
-<small>Tocchi ogni tanto: campanelli, glockenspiel, music box.</small>
+
 </div>
 <div class="voice accessory-voice">
 <div class="title">👥 Coro / voce</div>
 <div class="switchrow"><label>Attiva</label><input id="trackChoir" type="checkbox"/></div>
 <select class="instrument" id="instrumentChoir"></select>
 <div class="playerRow" style="margin:8px 0"><label>Volume <b id="volumeChoirValue">85%</b></label><input data-channel="10" id="volumeChoir" max="200" min="0" step="5" style="width:100%" type="range" value="85"/></div>
-<small>Raddoppia la melodia principale nelle sezioni abilitate.</small>
+
 </div>
 <div class="voice accessory-voice">
 <div class="title">🎺 Ottoni</div>
 <div class="switchrow"><label>Attiva</label><input id="trackBrass" type="checkbox"/></div>
 <select class="instrument" id="instrumentBrass"></select>
 <div class="playerRow" style="margin:8px 0"><label>Volume <b id="volumeBrassValue">85%</b></label><input data-channel="11" id="volumeBrass" max="200" min="0" step="5" style="width:100%" type="range" value="85"/></div>
-<small>Colpi brevi sugli accenti del ritornello.</small>
+
 </div>
 <div class="voice accessory-voice">
 <div class="title">🎻 Archi ritmici</div>
 <div class="switchrow"><label>Attiva</label><input id="trackStrings" type="checkbox"/></div>
 <select class="instrument" id="instrumentStrings"></select>
 <div class="playerRow" style="margin:8px 0"><label>Volume <b id="volumeStringsValue">65%</b></label><input data-channel="12" id="volumeStrings" max="200" min="0" step="5" style="width:100%" type="range" value="65"/></div>
-<small>Accordi brevi in levare che aggiungono energia.</small>
+
 </div>
 </div>
 </div>
 <div class="panel actionPanel">
 <div class="sectionTitle">
 <h2>🚀 Azioni</h2>
-<div class="help">Scegli stile, BPM, struttura e strumenti, poi genera, ascolta ed esporta.</div>
 </div>
 <div class="switchrow aiImprovementOption" style="margin:0 0 14px 0; justify-content:flex-start; gap:10px">
-<label for="enableAIImprovement"><b>🧠 Miglioramento AI</b></label>
-<input checked="" id="enableAIImprovement" type="checkbox"/>
-<small>Se attivo, il MIDI assemblato viene migliorato prima della riproduzione, del download o della conversione in MP3.</small>
+<label for="enableMidiHumanization"><b>🎚️ Humanizzazione MIDI locale</b></label>
+<input checked="" id="enableMidiHumanization" type="checkbox"/>
+<label for="humanizationIntensity"><small>Intensità</small></label>
+<select id="humanizationIntensity"><option value="0.30">Leggera</option><option selected value="0.55">Naturale</option><option value="0.82">Espressiva</option></select>
+
 </div>
 <div class="flowActions">
 <div class="step">
@@ -247,7 +250,7 @@
 </div>
 <div>
 <canvas height="520" id="bjRoll" width="1500"></canvas>
-<div class="bjTracks" id="bjTrackList"><span class="help">Le tracce appariranno dopo la generazione.</span></div>
+<div class="bjTracks" id="bjTrackList"></div>
 </div>
 </div>
 </div>
@@ -256,7 +259,7 @@
 <h2>📜 Dati del brano</h2>
 <button class="toggleDataBtn" id="toggleSongDataPanel" onclick="toggleSongData()">📂 Mostra dati</button>
 </div>
-<div class="help">Pannello tecnico: accordi, ritmo e melodia numerica.</div>
+
 <div class="songDataBody" id="songDataBody">
 <textarea id="output" readonly=""></textarea>
 </div>
@@ -268,11 +271,13 @@
 <script src="js/SongGenerator.js"></script>
 <script src="js/ArrangementGenerator.js"></script>
 <script src="js/MidiGenerator.js"></script>
-<script src="js/AIImprover.js"></script>
+<script src="js/vendor/Midi.js"></script>
+<script src="js/MidiHumanizer.js"></script>
+<script src="js/MidiImprover.js"></script>
 <script src="js/UIRuntime.js"></script>
 <script src="js/AppController.js"></script>
 <script src="js/AudioController.js"></script>
-<script src="js/AIEngine.js"></script>
+
 
 <script>
 (function () {

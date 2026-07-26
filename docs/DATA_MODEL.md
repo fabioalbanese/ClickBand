@@ -103,8 +103,9 @@ The same section definition may appear more than once.
 ```js
 {
   applied: true,
-  probability: 0.25,
+  probability: 0.40,
   triggerStructureIndex: 5,
+  triggerChorusOccurrence: 2,
   shiftSemitones: 1,
   returnAtOutro: true
 }

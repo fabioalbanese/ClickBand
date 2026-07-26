@@ -158,12 +158,12 @@ ostinato, fx, drums, choir, brass, strings, guitarLead
 
 ## Optional AI API
 
-## `AIImprover`
+## `MidiImprover`
 
 Optional asynchronous post-processing wrapper.
 
 ```js
-var improver = new AIImprover(config);
+var improver = new MidiImprover(config);
 var improvedBytes = await improver.improve(midiBytes, function (progress) {
   console.log(progress);
 });
@@ -212,7 +212,7 @@ For integrations, treat these as stable entry points:
 new SongGenerator(config).generate()
 new ArrangementGenerator(config).arrange(song)
 new MidiGenerator(config).generate(song)
-new AIImprover(config).improve(bytes, onProgress)
+new MidiImprover(config).improve(bytes, onProgress)
 ```
 
 Internal prototype methods may change between releases. Data-model changes should increment the root `version` field and be documented in the changelog.

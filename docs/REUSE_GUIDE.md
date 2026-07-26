@@ -16,7 +16,7 @@ ArrangementGenerator
 MidiGenerator
   converts the theoretical model to MIDI bytes
         ↓
-AIImprover (optional)
+MidiImprover + MidiHumanizer (optional)
   transforms the generated MIDI
 ```
 
@@ -272,7 +272,7 @@ Avoid replacing randomness during asynchronous UI activity.
 - `SongGenerator`: musical composition decisions.
 - `ArrangementGenerator`: musical orchestration decisions.
 - `MidiGenerator`: pitch resolution, MIDI channels, programs, controllers, tempo and serialization.
-- `AIImprover`: optional post-processing of MIDI bytes.
+- `MidiImprover`: optional deterministic local post-processing of MIDI bytes.
 - `AppController`, `UIRuntime`, `AudioController`: application UI; not required when embedding the libraries.
 
 ## Distribution and license

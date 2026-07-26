@@ -1,0 +1,12 @@
+const fs=require('fs'),vm=require('vm'),path=require('path');
+const root=path.resolve(__dirname,'..');
+const ctx={console,Uint8Array,ArrayBuffer,Map,Math,Number,String,Object,Promise};ctx.window=ctx;ctx.self=ctx;vm.createContext(ctx);
+vm.runInContext(fs.readFileSync(path.join(root,'js/vendor/Midi.js'),'utf8'),ctx);
+vm.runInContext(fs.readFileSync(path.join(root,'js/MidiHumanizer.js'),'utf8'),ctx);
+const source=fs.readFileSync(path.join(root,'MIDIs/clickband_junior.mid'));
+const a=ctx.ClickBandMidiHumanizer.humanizeMidi(new Uint8Array(source),{seed:'smoke',intensity:.55});
+const b=ctx.ClickBandMidiHumanizer.humanizeMidi(new Uint8Array(source),{seed:'smoke',intensity:.55});
+if(Buffer.from(a).toString('hex')!==Buffer.from(b).toString('hex')) throw new Error('Output non deterministico');
+if(Buffer.from(a.slice(0,4)).toString()!=='MThd') throw new Error('Header MIDI non valido');
+new ctx.Midi(a);
+console.log(JSON.stringify({status:'PASS',inputBytes:source.length,outputBytes:a.length}));

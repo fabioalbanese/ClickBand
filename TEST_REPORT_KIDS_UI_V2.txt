@@ -1,0 +1,31 @@
+CLICKBAND KIDS UI V2 — VERIFICATION
+
+Architecture
+- Kids pages do not contain or depend on hidden controls from the official UI.
+- A ClickBandUIAdapter contract supplies song, MIDI, structure, busy and status data directly to AppController.
+- AppController retains its existing official-UI fallback.
+
+Structure editor
+- Add-block palette is above the current structure.
+- Blocks support native Drag & Drop reordering.
+- Blocks can be removed and the default I,V,C,V,C,B,O structure restored.
+
+Status and audio
+- Visible aria-live status label is always present.
+- MIDI download and audio creation activate only after MIDI exists.
+- Play, Pause, Stop and audio download activate only after the MP3 blob reaches mp3Ready.
+- AudioController emits clickband:audio-state and uses the UI adapter for status messages.
+
+Automated tests passed
+- core-smoke.js
+- ui-style-flow.js
+- all-style-midi-programs.js
+- midi-humanizer-smoke.js
+- chorus-lift-rule.js
+- drum-grid64-humanizer.js
+- melody-grid64-timing-only.js
+- kids-ui-contract.js
+- JavaScript syntax check for both embedded kids runtimes
+
+Limit
+- Automated tests verify state transitions and wiring. Final browser listening remains the subjective audio test.

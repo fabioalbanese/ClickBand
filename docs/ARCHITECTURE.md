@@ -11,7 +11,7 @@ Every class has one responsibility. Music-domain classes receive plain data and 
 3. `SongGenerator` creates the complete canonical theoretical song.
 4. `ArrangementGenerator` creates every theoretical accessory voice.
 5. `MidiGenerator` translates the arranged song into MIDI and filters only the tracks selected for execution.
-6. `AIImprover` optionally post-processes MIDI bytes. Failure falls back safely to the original MIDI.
+6. `MidiImprover` optionally applies deterministic local humanization to MIDI bytes. Failure falls back safely to the original MIDI.
 7. The controller publishes one final MIDI result to the player, download and MP3 renderer.
 
 The only asynchronous work is UI yielding and optional AI processing. Core composition, arrangement and MIDI serialization remain synchronous.
@@ -23,8 +23,8 @@ The only asynchronous work is UI yielding and optional AI processing. Core compo
 - `SongGenerator`: form, theme, harmony, drums, melody and local-key decisions.
 - `ArrangementGenerator`: bass, arpeggio, guitar, pad, counterline, ostinato, choir, brass, strings and effects.
 - `MidiGenerator`: pitch resolution, channels, programs, CC data, timing and SMF serialization.
-- `AIEngine`: lazy Magenta loading and model operations.
-- `AIImprover`: stable AI boundary and fallback policy.
+- `MidiHumanizer`: deterministic timing, velocity and duration micro-variations, executed locally.
+- `MidiImprover`: stable optional post-processing boundary and fallback policy.
 - `UIRuntime`: structure builder, controls, report and MIDI preview player.
 - `AudioController`: MP3 rendering and audio state machine.
 - `Locale`: presentation-only localization.
@@ -32,7 +32,7 @@ The only asynchronous work is UI yielding and optional AI processing. Core compo
 
 ## Final modulation
 
-When the form contains at least two choruses, `SongGenerator` may randomly mark the final chorus and following non-outro sections with `shiftSemitones: 1`. The outro explicitly returns to `shiftSemitones: 0`. This is compositional data, not a MIDI effect.
+When the form contains at least two choruses, `SongGenerator` applies a +1-semitone lift in 40% of generations. The first chorus is never lifted; the change starts on chorus 2 or, when present, chorus 3, and continues through following non-outro sections. The outro explicitly returns to `shiftSemitones: 0`. This is compositional data, not a MIDI effect.
 
 ## Global API
 

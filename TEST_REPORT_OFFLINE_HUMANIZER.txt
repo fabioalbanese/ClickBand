@@ -1,0 +1,31 @@
+ClickBand Offline MIDI Humanizer — Test Report
+
+PASS: JavaScript syntax checks
+PASS: deterministic output for identical input/seed/intensity
+PASS: output begins with MThd and parses as Standard MIDI File
+PASS: track and note counts preserved on the supplied drum MIDI sample
+PASS: core smoke test across all styles
+PASS: UI style flow: Pop, Rock, Disco, Folk, Latin, Jazz, Blues, Celtic
+PASS: MIDI Program Change regression across all styles
+PASS: no Magenta runtime, checkpoint URL or external model reference remains
+
+Limitations:
+- Humanization is deterministic micro-variation, not generative AI.
+- Listening tests remain recommended for each intensity profile and style.
+
+DRUM GRID-64 TEST
+- PPQ testato: 480
+- Griglia temporanea: 64 slot/battuta, 30 tick per slot
+- Eventi batteria: 539
+- Eventi spostati: 26
+- Limite massimo 5%: 26
+- Eventi strutturali spostati: 0
+- Offset non conformi a +/-1 slot: 0
+- Test: tests/drum-grid64-humanizer.js
+
+MELODY GRID-64 / TIMING ONLY
+- Main melody identified by project channel even when MIDI track names are empty.
+- Timing movement limited to +/- one 64-grid slot.
+- Structural phrase/bar starts protected.
+- No passing notes or melodic note generation.
+- Destination timing and total song duration preserved.

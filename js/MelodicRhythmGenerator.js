@@ -104,12 +104,27 @@
     if (section === "chorus" || section === "only") {
       if (this.style === "DANCE") return ["flowing", "syncopated", "regular"];
       if (this.style === "FOLK") return ["regular", "flowing", "sparse"];
+      if (this.style === "LATIN") return ["syncopated", "flowing", "regular"];
+    if (this.style === "JAZZ") return ["syncopated", "flowing", "sparse"];
+      if (this.style === "BLUES") return ["syncopated", "sparse", "regular"];
+      if (this.style === "CELTIC") return ["flowing", "regular", "syncopated"];
       return ["regular", "flowing", "syncopated"];
     }
-    if (section === "bridge") return this.style === "FOLK" ? ["sparse", "regular", "syncopated"] : ["syncopated", "sparse", "regular"];
+    if (section === "bridge") {
+      if (this.style === "FOLK") return ["sparse", "regular", "syncopated"];
+      if (this.style === "LATIN") return ["syncopated", "regular", "flowing"];
+      if (this.style === "JAZZ") return ["flowing", "syncopated", "sparse"];
+      if (this.style === "BLUES") return ["sparse", "syncopated", "regular"];
+      if (this.style === "CELTIC") return ["flowing", "syncopated", "regular"];
+      return ["syncopated", "sparse", "regular"];
+    }
     if (this.style === "ROCK") return ["regular", "syncopated", "sparse"];
     if (this.style === "DANCE") return ["syncopated", "flowing", "regular"];
     if (this.style === "FOLK") return ["regular", "sparse", "flowing"];
+    if (this.style === "LATIN") return ["syncopated", "flowing", "regular"];
+    if (this.style === "JAZZ") return ["syncopated", "flowing", "sparse"];
+    if (this.style === "BLUES") return ["syncopated", "sparse", "regular"];
+    if (this.style === "CELTIC") return ["flowing", "regular", "syncopated"];
     return ["regular", "sparse", "syncopated"];
   };
 

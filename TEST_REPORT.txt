@@ -1,17 +1,25 @@
-ClickBand Folk/Country preset verification
+ClickBand — Latin / Salsa test report
 
-Expected Folk defaults:
-- Main melody: Harmonica (22)
-- Chord guitar: Banjo (105)
-- Bass: Acoustic Bass (32)
-- Pad: String Ensemble 1 (48), enabled
-- Countermelody: Harmonica (22)
-- Ostinato: Banjo (105)
-- BPM randomized in range 130-140
+Style added: LATIN (UI value: latin)
 
-Tests executed:
-- tests/ui-style-flow.js
-- tests/all-style-midi-programs.js
-- tests/core-smoke.js
+PASS - English UI option
+PASS - Italian UI option
+PASS - UI preset and real DOM values
+PASS - BPM range 107-117 (base 112 with existing randomization)
+PASS - Controller mapping latin -> LATIN
+PASS - 48 rhythm patterns (12 initial, 24 continuation, 12 fill)
+PASS - Unique pattern IDs and contents
+PASS - Melodic rhythm families
+PASS - Latin/Salsa harmonic progressions
+PASS - Tumbao bass, salsa comping, piano montuno, marimba/cascara, flute response, mambo brass
+PASS - Core smoke test: POP, ROCK, DANCE, FOLK, LATIN; major and minor
+PASS - MIDI Program Change test
+PASS - JavaScript syntax checks
 
-All tests passed.
+Commands executed:
+node tests/core-smoke.js
+node tests/ui-style-flow.js
+node tests/all-style-midi-programs.js
+node --check js/*.js tests/*.js
+
+No changes were made to MidiGenerator.js, AIImprover.js, AIEngine.js, AudioController.js or vendor libraries.

@@ -8,7 +8,7 @@ for(const f of ['RhythmPatternLibrary.js','MelodicRhythmGenerator.js','SongGener
 }
 function assert(c,m){if(!c)throw new Error(m)}
 let totalBars=0,totalEvents=0,modulated=0;
-for(const mode of ['major','minor']) for(const style of ['POP','ROCK','DANCE','FOLK']) for(let i=0;i<30;i++){
+for(const mode of ['major','minor']) for(const style of ['POP','ROCK','DANCE','FOLK','LATIN','JAZZ','BLUES','CELTIC']) for(let i=0;i<30;i++){
   const cfg={tonic:'C4',mode,style,sectionPhraseCounts:{intro:1,verse:2,chorus:2,bridge:1,outro:1},structure:['intro','verse','chorus','verse','chorus','bridge','chorus','outro'],useTonal:false};
   const base=new context.SongGenerator(cfg).generate();
   assert(base && base.sections && base.structurePlan,'base song invalid');
@@ -19,6 +19,25 @@ for(const mode of ['major','minor']) for(const style of ['POP','ROCK','DANCE','F
       assert(phrase.rhythmPatterns.ids.every(id=>/^folk_/.test(id)),'non-folk rhythm pattern selected');
     }
   }
+  if(style==='JAZZ'){
+    for(const section of Object.values(base.sections))for(const phrase of Object.values(section.phrases)){
+      assert(phrase.rhythmPatterns.style==='JAZZ','jazz rhythm style lost');
+      assert(phrase.rhythmPatterns.ids.every(id=>/^jazz_/.test(id)),'non-jazz rhythm pattern selected');
+    }
+  }
+  if(style==='LATIN'){
+    for(const secName of Object.keys(base.sections)) for(const variant of Object.keys(base.sections[secName].phrases)){
+      const phrase=base.sections[secName].phrases[variant];
+      assert(phrase.rhythmPatterns.style==='LATIN','latin rhythm style lost');
+      assert(phrase.rhythmPatterns.ids.every(id=>/^latin_/.test(id)),'non-latin rhythm pattern selected');
+    }
+  }
+  if(style==='BLUES' || style==='CELTIC'){
+    for(const section of Object.values(base.sections))for(const phrase of Object.values(section.phrases)){
+      assert(phrase.rhythmPatterns.style===style,style+' rhythm style lost');
+      assert(phrase.rhythmPatterns.ids.every(id=>new RegExp('^'+style.toLowerCase()+'_').test(id)),'wrong '+style+' rhythm pattern selected');
+    }
+  }
   const arranged=new context.ArrangementGenerator().arrange(base);
   assert(arranged && arranged.sections && arranged.structurePlan,'arranged song invalid');
   if(style==='FOLK'){
@@ -27,6 +46,30 @@ for(const mode of ['major','minor']) for(const style of ['POP','ROCK','DANCE','F
     assert(firstBar.voices.bass && firstBar.voices.bass.some(n=>n.role==='root-fifth'),'folk root-fifth bass missing');
     assert(firstBar.voices.guitar && firstBar.voices.guitar.some(n=>n.role==='boom'),'folk boom-chick guitar missing');
     assert(firstBar.voices.ostinato && firstBar.voices.ostinato.some(n=>n.role==='banjo-roll'),'folk banjo roll missing');
+  }
+  if(style==='JAZZ'){
+    const verse=arranged.sections.verse;
+    const firstBar=verse.phrases[verse.sequence[0]][0];
+    assert(firstBar.voices.bass && firstBar.voices.bass.some(n=>n.role==='walking-bass'),'jazz walking bass missing');
+    assert(firstBar.voices.guitar && firstBar.voices.guitar.some(n=>n.role==='freddie-green-comping'),'jazz guitar comping missing');
+    assert(firstBar.voices.ostinato && firstBar.voices.ostinato.some(n=>n.role==='vibraphone-comping'),'jazz vibes missing');
+  }
+  if(style==='LATIN'){
+    const verse=arranged.sections.verse;
+    const firstBar=verse.phrases[verse.sequence[0]][0];
+    assert(firstBar.voices.bass && firstBar.voices.bass.some(n=>n.role==='tumbao-bass'),'latin tumbao bass missing');
+    assert(firstBar.voices.guitar && firstBar.voices.guitar.some(n=>n.role==='salsa-comping'),'latin salsa comping missing');
+    assert(firstBar.voices.ostinato && firstBar.voices.ostinato.some(n=>n.role==='marimba-cascara'),'latin cascara ostinato missing');
+  }
+  if(style==='BLUES'){
+    const firstBar=arranged.sections.verse.phrases[arranged.sections.verse.sequence[0]][0];
+    assert(firstBar.voices.bass.some(n=>n.role==='blues-shuffle-bass'),'blues bass missing');
+    assert(firstBar.voices.guitar.some(n=>n.role==='blues-shuffle-guitar'),'blues guitar missing');
+  }
+  if(style==='CELTIC'){
+    const firstBar=arranged.sections.verse.phrases[arranged.sections.verse.sequence[0]][0];
+    assert(firstBar.voices.bass.some(n=>n.role==='celtic-root-fifth'),'celtic bass missing');
+    assert(firstBar.voices.ostinato.some(n=>n.role==='celtic-harp-ostinato'),'celtic harp missing');
   }
   // theoretical model must contain no MIDI properties
   const text=JSON.stringify(arranged);

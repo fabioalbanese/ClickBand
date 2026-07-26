@@ -1,6 +1,6 @@
 # ClickBand Junior — Release internazionale per produzione
 
-ClickBand Junior è un’applicazione musicale generativa, eseguita interamente nel browser e scritta in JavaScript classico. Genera un brano teorico completo, crea l’arrangiamento, produce un file MIDI standard, applica facoltativamente il miglioramento AI con Magenta ed esporta audio MP3 in locale.
+ClickBand Junior è un’applicazione musicale generativa, eseguita interamente nel browser e scritta in JavaScript classico. Genera un brano teorico completo, crea l’arrangiamento, produce un file MIDI standard, applica facoltativamente l’humanizzazione MIDI deterministica e locale ed esporta audio MP3 in locale.
 
 **Autore:** Fabio Albanese  
 **Licenza:** CC BY-NC 4.0 — attribuzione obbligatoria, uso esclusivamente non commerciale.
@@ -32,7 +32,7 @@ ArrangementGenerator
         ↓
 MidiGenerator
         ↓
-AIImprover facoltativo
+MidiImprover e MidiHumanizer facoltativi, completamente locali
         ↓
 Player / download MIDI / renderer MP3
 ```
@@ -48,3 +48,11 @@ ClickBand può essere incorporato senza la sua interfaccia. I documenti principa
 - [`docs/DATA_MODEL.it.md`](docs/DATA_MODEL.it.md) — contratti completi dei dati teorici e arrangiati;
 - [`docs/ARCHITECTURE.it.md`](docs/ARCHITECTURE.it.md) — responsabilità e confini delle pipeline;
 - [`docs/DEVELOPMENT.it.md`](docs/DEVELOPMENT.it.md) — regole di sviluppo e rilascio.
+
+
+- Latin / Salsa: syncopated percussion, piano montuno, tumbao bass, brass hits and call-and-response phrasing.
+- Jazz / Swing: ride-driven swing, walking acoustic bass, piano and guitar comping, tenor sax melody and muted-brass responses.
+
+
+### New styles
+Blues and Celtic / Irish Folk are available as complete compositional styles. Folk/Country now uses Fiddle, Violin and Banjo as requested.

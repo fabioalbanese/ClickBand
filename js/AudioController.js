@@ -18,7 +18,10 @@ let cbMp3Blob = null, cbMp3Url = null;
 let cbAudio = null;
 let cbRenderToken = 0;
 
-function cbStatus(msg){ if (typeof bjStatus === "function") bjStatus(msg); }
+function cbStatus(msg){
+    if (window.ClickBandUIAdapter && typeof window.ClickBandUIAdapter.setStatus === "function") { window.ClickBandUIAdapter.setStatus(msg); return; }
+    if (typeof bjStatus === "function") bjStatus(msg);
+}
 function cbEl(id){ return document.getElementById(id); }
 
 
@@ -155,17 +158,22 @@ function cbSetEnabled(id, on){
     if (el) el.disabled = !on;
 }
 
-function cbSetState(nextState){
-    cbState = nextState;
-    const audioOk = nextState === "mp3Ready" || nextState === "fallback";
-    
-    const midiOk = nextState === "midiReady" || nextState === "mp3Ready" || nextState === "fallback";
+function cbSyncMp3Controls(){
+    const audioOk = cbState === "mp3Ready" || cbState === "fallback";
+    const midiOk = cbState === "midiReady" || cbState === "mp3Ready" || cbState === "fallback";
+    const downloadOk = cbState === "mp3Ready" && cbMp3Blob instanceof Blob && cbMp3Blob.size > 0;
 
     cbSetEnabled("cbGenerateMp3Button", midiOk);
     cbSetEnabled("cbBtnPlay", audioOk);
     cbSetEnabled("cbBtnPause", audioOk);
     cbSetEnabled("cbBtnStop", audioOk);
-    cbSetEnabled("cbMp3Button", nextState === "mp3Ready");
+    cbSetEnabled("cbMp3Button", downloadOk);
+}
+
+function cbSetState(nextState){
+    cbState = nextState;
+    cbSyncMp3Controls();
+    try { window.dispatchEvent(new CustomEvent("clickband:audio-state", { detail: { state: cbState, downloadReady: cbMp3Blob instanceof Blob && cbMp3Blob.size > 0 } })); } catch(e) {}
 }
 
 
@@ -176,12 +184,15 @@ function cbResetMp3(){
     cbStopAll();
     cbMp3Blob = null;
     if (cbMp3Url) { try { URL.revokeObjectURL(cbMp3Url); } catch(e){} cbMp3Url = null; }
-    const midiReady = typeof song !== "undefined" && song && song.midiBytes;
+    const midiReady = !!(window.ClickBandEngine && window.ClickBandEngine.getMidi && window.ClickBandEngine.getMidi());
     cbSetState(midiReady ? "midiReady" : "empty");
 }
 
 async function cbStartMp3Render(){
-    if (typeof song === "undefined" || !song || !song.midiBytes) return;
+    const engineMidi = window.ClickBandEngine && window.ClickBandEngine.getMidi ? window.ClickBandEngine.getMidi() : null;
+    const legacyMidi = (typeof song !== "undefined" && song) ? song.midiBytes : null;
+    const sourceMidi = engineMidi || legacyMidi;
+    if (!sourceMidi) return;
     const token = ++cbRenderToken;
 
     cbStopAll();
@@ -204,7 +215,7 @@ async function cbStartMp3Render(){
 
     try {
         cbStatus("Creo l\u2019MP3\u2026 0%");
-        const pcm = await cbRenderPCM(new Uint8Array(song.midiBytes), token,
+        const pcm = await cbRenderPCM(new Uint8Array(sourceMidi), token,
             p => cbStatus("Creo l\u2019MP3\u2026 " + Math.round(p*100) + "%"));
         if (!pcm || token !== cbRenderToken) return;
         cbStatus("Comprimo in MP3\u2026");
@@ -226,13 +237,20 @@ async function cbStartMp3Render(){
             cbAudio.playbackRate = 1;
         }
         cbSetState("mp3Ready");
-        cbStatus("\u2705 MP3 ready (" + Math.round(blob.size/1024) + " KB). Premi \u25b6 Play or download it per Scratch.");
+        // Other UI updates may run in the same event loop. Re-apply the MP3 state
+        // after painting so the download button cannot remain disabled.
+        requestAnimationFrame(() => {
+            cbSyncMp3Controls();
+            requestAnimationFrame(cbSyncMp3Controls);
+        });
+        cbStatus(document.documentElement.lang === "it" ? "MP3 pronto." : "MP3 ready.");
     } catch (e) {
         console.error("Render MP3:", e);
         cbSetState("fallback");
         cbStatus("MP3 was not created (" + e.message + "). The player user\u00e0 i sounds base.");
     } finally {
         if (genBtn) genBtn.textContent = genBtnTestoOriginale || "\ud83c\udfb5 Generate MP3";
+        cbSyncMp3Controls();
     }
 }
 
@@ -302,7 +320,9 @@ window.cbDownloadMp3 = function(){
     if (!cbMp3Blob) { cbStatus("MP3 is not ready yet."); return; }
     const a = document.createElement("a");
     a.href = cbMp3Url || URL.createObjectURL(cbMp3Blob);
-    a.download = bjSafeFileName("ClickBandJunior_3_0_" + (currentStyle?.name || "song")) + ".mp3";
+    const safe = typeof bjSafeFileName === "function" ? bjSafeFileName : function(v){ return String(v).replace(/[^a-z0-9_-]+/gi,"_"); };
+    const styleName = (typeof currentStyle !== "undefined" && currentStyle && currentStyle.name) ? currentStyle.name : "song";
+    a.download = safe("ClickBandJunior_3_0_" + styleName) + ".mp3";
     document.body.appendChild(a); a.click(); a.remove();
     cbStatus("MP3 scaricato: load it nei sounds di Scratch.");
 };
@@ -313,7 +333,8 @@ window.cbResetMp3 = cbResetMp3;
 window.cbStopAll = cbStopAll;
 
 window.cbStartMp3Render = cbStartMp3Render; 
-window.cbPlayerState = () => cbState;       
+window.cbPlayerState = () => cbState;
+window.cbSyncMp3Controls = cbSyncMp3Controls;
 
 cbSetState("empty");
 
