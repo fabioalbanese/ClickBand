@@ -42,7 +42,7 @@ function cbLoadCompanionScript(src){
         s.onload = () => finish(true);
         s.onerror = () => finish(false);
         document.head.appendChild(s);
-        setTimeout(() => finish(false), 20000); 
+        setTimeout(() => finish(false), 220000); 
     });
 }
 
